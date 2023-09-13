@@ -95,6 +95,9 @@ class TetrisPiece:
                 return True
         return False
     
+    def transform(self) -> None:
+        pass
+    
     def __str__(self) -> str:
         return str(self.body)
     

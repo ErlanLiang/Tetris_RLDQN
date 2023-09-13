@@ -2,10 +2,7 @@ from TetrisPiece import TetrisPiece
 from TetrisModel import TetrisModel
 import numpy as np
 
-ADD_OK = 0
-ADD_ROW_FILLED = 1
-ADD_OOB = 2
-ADD_BAD = 3
+
 
 class TetrisGrid:
     width: int
@@ -13,6 +10,10 @@ class TetrisGrid:
     Grid: np.ndarray
     colCount: np.ndarray
     rowCount: np.ndarray
+    ADD_OK = 0
+    ADD_ROW_FILLED = 1
+    ADD_OOB = 2
+    ADD_BAD = 3
     
     def __init__(self) -> None:
         self.width = TetrisModel.WIDTH
@@ -80,13 +81,34 @@ class TetrisGrid:
     def clearRows(self) -> int:
         self.updatecolrowcount()
         cleaCount = 0
-        for i in range(self.height):
-            if self.rowCount[i] == self.width:
+        rowC = []
+        for i in range(self.getMaxheight):
+            fil = False
+            # if self.rowCount[i] == self.width:
+            #     cleaCount += 1
+            for j in range(self.width):
+                if not self.Grid[i][j]:
+                    fil = True
+                    break
+            if not fil:
                 cleaCount += 1
                 for j in range(self.width):
-                    fil = False
                     self.Grid[i][j] = False
-                    self.colCount[j] -= 1
-                    self.rowCount[i] -= 1
+                    # self.colCount[j] -= 1
+                    # self.rowCount[i] -= 1
+                rowC.append(i)
+                self.updatecolrowcount()
+        if cleaCount == 0:
+            return 0
+        curR = -1
+        for i in rowC:
+            for j in range(i, self.getMaxheight):
+                for k in range(self.width):
+                    self.Grid[k][j - curR] = self.Grid[k][j + 1]
+                    self.Grid[k][j + 1 - curR] = False
+        self.updatecolrowcount
+        return cleaCount
+
+        
 
         
