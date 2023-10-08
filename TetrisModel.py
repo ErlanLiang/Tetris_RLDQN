@@ -21,6 +21,7 @@ class TetrisModel:
     currentY: int
     newX: int
     newY: int
+    gameon: bool
     
     
     def __init__(self) -> None:
@@ -59,9 +60,46 @@ class TetrisModel:
             self.currentX = x
             self.currentY = y
         return result
-
     
+    def addNewPiece(self) -> int:
+        self.pcount += 1
+        self.score += 1
 
+        pic = self.nxt_piece
+        self.nxt_piece = TetrisPiece.createRandomPiece()
+        x = (self.grid.width - pic.width) // 2
+        y = self.grid.height - pic.height#pic.lowestYVals[0] - 1
+        if self.setCurrent(pic, x, y) > TetrisGrid.ADD_ROW_FILLED:
+            self.gameon = False
+
+    def executeMove(self, action: TetrisAction) -> None:
+        result = self.setCurrent(self.nxt_piece, self.newX, self.newY)
+        failed = result >= TetrisGrid.ADD_OOB
+        if(failed):
+            self.grid.placePiece(self.cur_piece, self.currentX, self.currentY)
+        if(failed and action == TetrisAction.DOWN):
+            cleared = self.grid.clearRows()
+            if cleared > 0:
+                if cleared == 1:
+                    self.score += 5
+                elif cleared == 2:
+                    self.score += 10
+                elif cleared == 3:
+                    self.score += 20
+                elif cleared == 4:
+                    self.score += 40
+        
+        if (self.grid.getMaxheight > self.grid.height):
+            self.gameon = False
+
+        else:
+            self.addNewPiece()
+
+        # def newGame(self) -> None:
+        #     self.grid = TetrisGrid(self.WIDTH, self.HEIGHT)
+        #     self.nxt_piece = TetrisPiece.createRandomPiece()
+        #     self.addNewPiece()
+        #     self.gameon = True
 
 
 

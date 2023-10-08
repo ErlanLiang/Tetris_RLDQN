@@ -1,5 +1,6 @@
 from TetrisPoint import TetrisPoint
 from TetrisModel import TetrisModel
+import random
 
 # def parsePoint(pointstr: str) -> TetrisPoint:
 
@@ -88,6 +89,9 @@ class TetrisPiece:
             if not tp in other.body:
                 return False
         return True
+    
+    def createRandomPiece(self) -> 'TetrisPiece':
+        return TetrisPiece.createFromString(random.choice([STICK_STR, L1_STR, L2_STR, S1_STR, S2_STR, SQUARE_STR, PYRAMID_STR]))
     
     def negativeYExists(self) -> bool:
         for y in self.lowestYVals:
