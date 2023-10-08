@@ -1,5 +1,12 @@
 from TetrisPiece import TetrisPiece
 import numpy as np
+from enum import IntEnum
+
+class AddStatus(IntEnum):
+    ADD_OK = 0
+    ADD_ROW_FILLED = 1
+    ADD_OOB = 2
+    ADD_BAD = 3
 
 class TetrisGrid:
     width: int
@@ -7,10 +14,6 @@ class TetrisGrid:
     Grid: np.ndarray
     colCount: np.ndarray
     rowCount: np.ndarray
-    ADD_OK = 0
-    ADD_ROW_FILLED = 1
-    ADD_OOB = 2
-    ADD_BAD = 3
     
     def __init__(self, width: int, height: int) -> None:
         self.width = width
@@ -45,9 +48,9 @@ class TetrisGrid:
     def updatecolrowcount(self) -> None:
         self.colCount = np.zeros(self.width, dtype=int)
         self.rowCount = np.zeros(self.height, dtype=int)
-        for i in range(self.height):
-            for j in range(self.width):
-                if self.Grid[i][j]:
+        for i in range(self.width):
+            for j in range(self.height):
+                if self.Grid[j][i]:
                     self.colCount[i] = 1 + j
                     self.rowCount[j] += 1
     
@@ -59,27 +62,27 @@ class TetrisGrid:
         ADD_BAD = 3
         """
         if col < 0 or col >= self.width or row < 0 or row >= self.height:
-            return ADD_OOB
+            return AddStatus.ADD_OOB
         for point in piece.body:
             if  (row + point.y) >= self.height or (col + point.x) >= self.width:
-                return ADD_OOB
-            if self.Grid[row + point.y][col + point.x]:
-                return ADD_BAD
+                return AddStatus.ADD_OOB
+            if self.Grid[row - point.y][col - point.x]:
+                return AddStatus.ADD_BAD
         for point in piece.body:
             self.Grid[row + point.y][col + point.x] = True
-            self.colCount[col + point.x] += 1
-            self.rowCount[row + point.y] += 1
+            self.colCount[point.x] += 1
+            self.rowCount[point.y] += 1
             self.updatecolrowcount()
         for i in range(self.height): # double check(not sure if correct)
             if self.rowCount[i] == self.width:
-                return ADD_ROW_FILLED
-        return ADD_OK
+                return AddStatus.ADD_ROW_FILLED
+        return AddStatus.ADD_OK
     
     def clearRows(self) -> int:
         self.updatecolrowcount()
         cleaCount = 0
         rowC = []
-        for i in range(self.getMaxheight):
+        for i in range(self.getMaxheight()):
             fil = False
             # if self.rowCount[i] == self.width:
             #     cleaCount += 1

@@ -1,6 +1,7 @@
 import pygame
 import numpy as np
 from TetrisModel import TetrisModel
+from TetrisModel import TetrisAction
 
 BLOCK_SIZE = 30
 GREY = (128, 128, 128)
@@ -23,11 +24,14 @@ if __name__ == "__main__":
     running = True
     frames_passed = 0
     frames_per_game_tick = 30
+    MODEL.startGame()
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+        MODEL.executeMove(TetrisAction.DOWN)
 
         screen.fill((0, 0, 0))
 

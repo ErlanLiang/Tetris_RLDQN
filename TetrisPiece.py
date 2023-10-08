@@ -11,6 +11,7 @@ S1_STR		= "0 0	1 0	 1 1  2 1"
 S2_STR		= "0 1	1 1  1 0  2 0"
 SQUARE_STR	= "0 0  0 1  1 0  1 1"
 PYRAMID_STR	= "0 0  1 0  1 1  2 0"
+GRID_WIDTH = 10
 
 def parsePoints(string: str) -> list[TetrisPoint]:
     """Parses points from a string.
@@ -44,11 +45,11 @@ class TetrisPiece:
     next: 'TetrisPiece'
     pieces: list['TetrisPiece']  # May not be needed
     
-    def __init__(self, points: list['TetrisPoint'], grid_width: int) -> None:
+    def __init__(self, points: list['TetrisPoint']) -> None:
         self.body = points
  
         # Compute the lowest y value for each column
-        self.lowestYVals = [0] * grid_width
+        self.lowestYVals = [0] * GRID_WIDTH
         maxX = 0
         maxY = 0
         minX = 0
@@ -73,7 +74,7 @@ class TetrisPiece:
         self.pieces = []
 
     # create a piece from a string
-    def createFromString(self, str: str) -> 'TetrisPiece':
+    def createFromString(str: str) -> 'TetrisPiece':
         points = parsePoints(str)
         return TetrisPiece(points)
     
@@ -89,7 +90,7 @@ class TetrisPiece:
                 return False
         return True
     
-    def createRandomPiece(self) -> 'TetrisPiece':
+    def createRandomPiece() -> 'TetrisPiece':
         return TetrisPiece.createFromString(random.choice([STICK_STR, L1_STR, L2_STR, S1_STR, S2_STR, SQUARE_STR, PYRAMID_STR]))
     
     def negativeYExists(self) -> bool:
