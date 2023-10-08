@@ -1,5 +1,4 @@
 from TetrisPoint import TetrisPoint
-from TetrisModel import TetrisModel
 
 # def parsePoint(pointstr: str) -> TetrisPoint:
 
@@ -106,5 +105,5 @@ class TetrisPiece:
 
 
 if __name__ == "__main__":
-    print(TetrisModel.WIDTH)
+    pass
     

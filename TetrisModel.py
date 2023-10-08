@@ -25,6 +25,7 @@ class TetrisModel:
     
     def __init__(self) -> None:
         self.grid = TetrisGrid(self.WIDTH, self.HEIGHT)
+        self.score = 0
         # self.piece = 
         self.gameon = False
 
