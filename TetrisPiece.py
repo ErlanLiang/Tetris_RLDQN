@@ -44,11 +44,11 @@ class TetrisPiece:
     next: 'TetrisPiece'
     pieces: list['TetrisPiece']  # May not be needed
     
-    def __init__(self, points: list['TetrisPoint']) -> None:
+    def __init__(self, points: list['TetrisPoint'], grid_width: int) -> None:
         self.body = points
  
         # Compute the lowest y value for each column
-        self.lowestYVals = [0] * TetrisModel.WIDTH
+        self.lowestYVals = [0] * grid_width
         maxX = 0
         maxY = 0
         minX = 0

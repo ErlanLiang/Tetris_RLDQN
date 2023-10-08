@@ -1,8 +1,5 @@
 from TetrisPiece import TetrisPiece
-from TetrisModel import TetrisModel
 import numpy as np
-
-
 
 class TetrisGrid:
     width: int
@@ -15,9 +12,9 @@ class TetrisGrid:
     ADD_OOB = 2
     ADD_BAD = 3
     
-    def __init__(self) -> None:
-        self.width = TetrisModel.WIDTH
-        self.height = TetrisModel.HEIGHT
+    def __init__(self, width: int, height: int) -> None:
+        self.width = width
+        self.height = height
         self.Grid = np.zeros((self.height, self.width), dtype=bool)
         self.colCount = np.zeros(self.width, dtype=int)
         self.rowCount = np.zeros(self.height, dtype=int)
