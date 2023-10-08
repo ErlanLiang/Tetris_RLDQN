@@ -2,12 +2,10 @@ import random
 from collections import deque, namedtuple
 import time
 
-import test
 from ale_py import ALEInterface
 import gym
 import numpy as np
 import tensorflow as tf
-import gymnasium
 from tensorflow import keras
 from keras import Sequential
 from keras.layers import Dense, Input, Conv2D, Flatten
