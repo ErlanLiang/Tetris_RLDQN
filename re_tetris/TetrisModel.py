@@ -15,6 +15,8 @@ class TetrisAction(IntEnum):
 class TetrisGrid:
     WIDTH = 10
     HEIGHT = 22
+    
+    grid: np.ndarray
 
     def __init__(self):
         self.grid = np.zeros((self.HEIGHT, self.WIDTH), dtype=bool)
@@ -68,6 +70,10 @@ class TetrisGrid:
 
 # Define the TetrisPiece class
 class TetrisPiece:
+    shape: np.ndarray
+    num_pieces: int
+    rotation: int
+
     # Define the standard Tetris pieces as constants
     TETROMINOS = {
         1: np.array([[1]]),
@@ -105,7 +111,13 @@ class TetrisPiece:
 class TetrisModel:
     WIDTH = 10
     HEIGHT = 22
+
+    grid: TetrisGrid
     game_over: bool
+    current_piece: TetrisPiece
+    current_x: int
+    current_y: int
+    score: int
 
     def __init__(self):
         self.grid = TetrisGrid()
@@ -177,11 +189,10 @@ class TetrisModel:
         Check if the specified action can be performed.
         """
         if action == TetrisAction.TRANSFORM:
+            backup_piece = self.current_piece.copy()
             self.current_piece.rotate()
             can_perform = not self.grid.check_collision(self.current_piece, self.current_x, self.current_y)
-            # Rotate back
-            for _ in range(3):
-                self.current_piece.rotate()
+            self.current_piece = backup_piece
             return can_perform
         elif action == TetrisAction.LEFT:
             return not self.grid.check_collision(self.current_piece, self.current_x - 1, self.current_y)
