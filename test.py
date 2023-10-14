@@ -35,8 +35,27 @@
 #         self.grid = get_grid(ale)
 #         self.height = 0
 
-for i in range(1, 2):
-    print("1")
+import numpy as np
+import random
+from enum import IntEnum
+
+TETROMINOS = {
+    # 'I': np.array([[1, 1, 1, 1]]),
+    # 'O': np.array([[1, 1], [1, 1]]),
+    # 'T': np.array([[0, 1, 0], [1, 1, 1]]),
+    # 'S': np.array([[0, 1, 1], [1, 1, 0]]),
+    # 'Z': np.array([[1, 1, 0], [0, 1, 1]]),
+    # 'J': np.array([[1, 0, 0], [1, 1, 1]]),
+    # 'L': np.array([[0, 0, 1], [1, 1, 1]])
+    '1': np.array([[1]]),
+    '2': np.array([[1, 1]]),
+    '3': np.array([[1, 0], [1, 1]]),
+    '4': np.array([[1, 1], [1, 1]]),
+    '5': np.array([[1, 0],[1, 1], [1, 1]]),
+
+}
+
+print(type(TETROMINOS.))
 
 
 

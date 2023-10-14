@@ -70,24 +70,24 @@ class TetrisGrid:
 class TetrisPiece:
     # Define the standard Tetris pieces as constants
     TETROMINOS = {
-        'I': np.array([[1, 1, 1, 1]]),
-        'O': np.array([[1, 1], [1, 1]]),
-        'T': np.array([[0, 1, 0], [1, 1, 1]]),
-        'S': np.array([[0, 1, 1], [1, 1, 0]]),
-        'Z': np.array([[1, 1, 0], [0, 1, 1]]),
-        'J': np.array([[1, 0, 0], [1, 1, 1]]),
-        'L': np.array([[0, 0, 1], [1, 1, 1]])
+        1: np.array([[1]]),
+        2: np.array([[1, 1]]),
+        3: np.array([[1, 0], [1, 1]]),
+        4: np.array([[1, 1], [1, 1]]),
+        5: np.array([[1, 0],[1, 1], [1, 1]]),
+
     }
 
     def __init__(self, shape):
         self.shape = self.TETROMINOS[shape]
+        self.num_pieces = shape
         self.rotation = 0
 
     def copy(self):
         """
         Return a copy of this piece.
         """
-        piece_copy = TetrisPiece('I')
+        piece_copy = TetrisPiece(self.num_pieces)
         piece_copy.shape = self.shape.copy()
         piece_copy.rotation = self.rotation
         return piece_copy
@@ -96,6 +96,10 @@ class TetrisPiece:
         # Rotate the piece
         self.shape = np.rot90(self.shape)
         self.rotation = (self.rotation + 1) % 4
+
+    def transform(self):
+        # Transform the piece
+        pass
 
 # Define the TetrisModel class
 class TetrisModel:

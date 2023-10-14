@@ -103,12 +103,7 @@ class TetrisModel:
                 print("add new piece")
                 self.addNewPiece()
 
-        # def newGame(self) -> None:
-        #     self.grid = TetrisGrid(self.WIDTH, self.HEIGHT)
-        #     self.nxt_piece = TetrisPiece.createRandomPiece()
-        #     self.addNewPiece()
-        #     self.gameon = True
-
+    
 
 
 
