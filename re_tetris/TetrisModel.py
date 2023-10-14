@@ -73,6 +73,7 @@ class TetrisPiece:
     shape: np.ndarray
     num_pieces: int
     rotation: int
+    original_shape: np.ndarray
 
     # Define the standard Tetris pieces as constants
     TETROMINOS = {
@@ -84,8 +85,9 @@ class TetrisPiece:
 
     }
 
-    def __init__(self, shape):
+    def __init__(self, shape: int):
         self.shape = self.TETROMINOS[shape]
+        self.original_shape = self.shape
         self.num_pieces = shape
         self.rotation = 0
 
@@ -94,8 +96,9 @@ class TetrisPiece:
         Return a copy of this piece.
         """
         piece_copy = TetrisPiece(self.num_pieces)
-        piece_copy.shape = self.shape.copy()
+        piece_copy.shape = self.shape
         piece_copy.rotation = self.rotation
+        piece_copy.original_shape = self.original_shape
         return piece_copy
 
     def rotate(self):
