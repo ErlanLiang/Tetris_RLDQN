@@ -112,7 +112,7 @@ class TetrisModel:
         """
         self.current_piece = TetrisPiece(random.choice(list(TetrisPiece.TETROMINOS.keys())))
         self.current_x = self.WIDTH // 2 - self.current_piece.shape.shape[1] // 2
-        self.current_y = -self.current_piece.shape.shape[0]  # Set the y-coordinate to the negative height of the piece
+        self.current_y = 0  # Start at the top of the grid
 
         # If the new piece causes a collision, the game is over
         if self.grid.check_collision(self.current_piece, self.current_x, self.current_y):
@@ -141,6 +141,9 @@ class TetrisModel:
                 self.grid.add_piece(self.current_piece, self.current_x, self.current_y)
                 self.score += self.grid.remove_full_lines()
                 self.spawn_piece()
+                # Check for game over
+                if self.grid.check_collision(self.current_piece, self.current_x, self.current_y):
+                    self.game_over = True
         elif action == TetrisAction.DROP:
             while not self.grid.check_collision(self.current_piece, self.current_x, self.current_y + 1):
                 self.current_y += 1

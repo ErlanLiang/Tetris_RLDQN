@@ -31,20 +31,29 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 running = False
 
-        model.executeMove(TetrisAction.DOWN)
+        # Execute default move every game_tick
+        if frames_passed % frames_per_game_tick == 0:
+            model.executeMove(TetrisAction.DOWN)
 
         screen.fill((0, 0, 0))
 
-        flipped_grid = np.flip(model.grid.grid, 0)
+        current_grid = model.grid.grid
 
         # Draw the grid on screen
         for x in range(model.WIDTH):
             for y in range(model.HEIGHT):
-                if flipped_grid[y][x]:
+                if current_grid[y][x]:
                     pygame.draw.rect(screen, PURPLE, (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
                 else:
                     pygame.draw.rect(screen, GREY, (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
                 pygame.draw.rect(screen, WHITE, (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE), 1)
+
+        # Draw the current piece on top of the grid
+        for i in range(model.current_piece.shape.shape[0]):
+            for j in range(model.current_piece.shape.shape[1]):
+                if model.current_piece.shape[i][j]:
+                    pygame.draw.rect(screen, PURPLE, ((model.current_x + j) * BLOCK_SIZE, (model.current_y + i) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
+                pygame.draw.rect(screen, WHITE, ((model.current_x + j) * BLOCK_SIZE, (model.current_y + i) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE), 1)
 
         pygame.display.set_caption(f"Tetris - Score: {model.score}")
         frames_passed += 1
