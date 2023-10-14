@@ -35,10 +35,12 @@ if __name__ == "__main__":
 
         screen.fill((0, 0, 0))
 
+        flipped_grid = np.flip(model.grid.grid, 0)
+
         # Draw the grid on screen
         for x in range(model.WIDTH):
             for y in range(model.HEIGHT):
-                if model.grid.Grid[y][x]:
+                if flipped_grid[y][x]:
                     pygame.draw.rect(screen, PURPLE, (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
                 else:
                     pygame.draw.rect(screen, GREY, (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
