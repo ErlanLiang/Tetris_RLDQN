@@ -30,10 +30,25 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    model.executeMove(TetrisAction.LEFT)
+                elif event.key == pygame.K_RIGHT:
+                    model.executeMove(TetrisAction.RIGHT)
+                elif event.key == pygame.K_DOWN:
+                    model.executeMove(TetrisAction.DOWN)
+                elif event.key == pygame.K_UP:
+                    model.executeMove(TetrisAction.TRANSFORM)
+                elif event.key == pygame.K_SPACE:
+                    model.executeMove(TetrisAction.DROP)
 
         # Execute default move every game_tick
         if frames_passed % frames_per_game_tick == 0:
             model.executeMove(TetrisAction.DOWN)
+
+        # Check if the game is over
+        if model.game_over:
+            running = False
 
         screen.fill((0, 0, 0))
 
@@ -61,4 +76,5 @@ if __name__ == "__main__":
         pygame.display.flip()
         clock.tick(60)
 
+    print(f"Game over! Score: {model.score}")
     pygame.quit()

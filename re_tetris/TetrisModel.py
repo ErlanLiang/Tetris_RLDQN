@@ -99,6 +99,7 @@ class TetrisModel:
         self.current_x = 0
         self.current_y = 0
         self.score = 0
+        self.game_over = False
 
     def startGame(self):
         """
