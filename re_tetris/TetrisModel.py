@@ -9,6 +9,7 @@ class TetrisAction(IntEnum):
     RIGHT = 2
     DROP = 3
     DOWN = 4
+    ROTATE = 5
 
 # Define the TetrisGrid class
 class TetrisGrid:
@@ -82,6 +83,15 @@ class TetrisPiece:
         self.shape = self.TETROMINOS[shape]
         self.rotation = 0
 
+    def copy(self):
+        """
+        Return a copy of this piece.
+        """
+        piece_copy = TetrisPiece('I')
+        piece_copy.shape = self.shape.copy()
+        piece_copy.rotation = self.rotation
+        return piece_copy
+
     def rotate(self):
         # Rotate the piece
         self.shape = np.rot90(self.shape)
@@ -124,11 +134,17 @@ class TetrisModel:
         Execute the specified move.
         """
         if action == TetrisAction.TRANSFORM:
+            backup_piece = self.current_piece.copy()
             self.current_piece.rotate()
             if self.grid.check_collision(self.current_piece, self.current_x, self.current_y):
-                # Rotate back if there's a collision
-                for _ in range(3):
-                    self.current_piece.rotate()
+                # Restore if there's a collision
+                self.current_piece = backup_piece
+        elif action == TetrisAction.ROTATE:
+            backup_piece = self.current_piece.copy()
+            self.current_piece.rotate()
+            if self.grid.check_collision(self.current_piece, self.current_x, self.current_y):
+                # Restore if there's a collision
+                self.current_piece = backup_piece
         elif action == TetrisAction.LEFT:
             if not self.grid.check_collision(self.current_piece, self.current_x - 1, self.current_y):
                 self.current_x -= 1

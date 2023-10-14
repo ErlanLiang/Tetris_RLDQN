@@ -38,9 +38,11 @@ if __name__ == "__main__":
                 elif event.key == pygame.K_DOWN:
                     model.executeMove(TetrisAction.DOWN)
                 elif event.key == pygame.K_UP:
-                    model.executeMove(TetrisAction.TRANSFORM)
+                    model.executeMove(TetrisAction.ROTATE)
                 elif event.key == pygame.K_SPACE:
                     model.executeMove(TetrisAction.DROP)
+                elif event.key == pygame.K_z:
+                    model.executeMove(TetrisAction.TRANSFORM)
 
         # Execute default move every game_tick
         if frames_passed % frames_per_game_tick == 0:
