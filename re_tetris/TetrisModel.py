@@ -77,19 +77,34 @@ class TetrisPiece:
 
     # Define the standard Tetris pieces as constants
     TETROMINOS = {
-        1: np.array([[1]]),
-        2: np.array([[1, 1]]),
-        3: np.array([[1, 0], [1, 1]]),
-        4: np.array([[1, 1], [1, 1]]),
-        5: np.array([[1, 0],[1, 1], [1, 1]]),
+        1: [np.array([[1]])],
+
+        2: [np.array([[1, 1]]), np.array([[0, 1], [1, 0]])],
+
+        3: [np.array([[1, 1, 1]]), np.array([[1, 0], [1, 1]]), np.array([[0, 1], [1, 1]]), 
+            np.array([[0, 1], [1, 1]]), np.array([[1, 0, 0], [0, 1, 1]]), np.array([[0, 0, 1], [1, 1, 0]]), 
+            np.array([[1, 0, 1, 1]]), np.array([[0, 1, 0], [1, 0, 1]]), np.array([[1, 0], [0, 0], [1, 1]]),
+            np.array([[0, 1], [0, 0], [1, 1]])],
+            
+        4: [np.array([[1, 1, 1, 1]]), np.array([[0, 0 , 1], [1, 1, 1]]), np.array([[1, 0, 0], [1, 1, 1]]), 
+            np.array([[0, 1, 0], [1, 1, 1]]), np.array([[1, 1], [1, 1]]), np.array([[0, 1, 1], [1, 1, 0]]), 
+            np.array([[1, 1, 0], [0, 1, 1]]), np.array([[1, 0, 1, 1, 1]]), np.array([[1, 1, 0, 1, 1]]), 
+            np.array([[1, 1, 1, 1]]), np.array([[1, 1], [0, 0], [1, 1]]), np.array([[1, 1, 1], [0, 0, 0], [0, 0, 1]]),
+            np.array([[1, 1, 1], [0, 0, 0], [1, 0, 0]]), np.array([[1, 1, 1], [0, 0, 0], [0, 1, 0]]),
+            np.array([[1, 0, 0, 0], [0, 1, 1, 1]]), np.array([[0, 0, 0, 1], [1, 1, 1, 0]]),
+            np.array([[1, 1, 0, 0], [0, 0, 1, 1]]), np.array([[1, 1, 0, 1], [0, 0, 0, 1]]), 
+            np.array([[1, 1, 0, 1], [0, 1, 0, 0]]), np.array([[1, 1, 0, 1], [1, 0, 0, 0]])], 
+        # 5: np.array([[1, 1, 0],[1, 1, 1]]),
 
     }
 
     def __init__(self, shape: int):
-        self.shape = self.TETROMINOS[shape]
-        self.original_shape = self.shape
+        self.shape = self.TETROMINOS[shape][0]
+        self.original_shape = 0
         self.num_pieces = shape
         self.rotation = 0
+        self.length = self.shape.shape[0]
+        self.transform_length = len(self.TETROMINOS[shape])
 
     def copy(self):
         """
@@ -108,7 +123,13 @@ class TetrisPiece:
 
     def transform(self):
         # Transform the piece
-        pass
+        if self.original_shape == self.transform_length - 1:
+            self.original_shape = 0
+        else:
+            self.original_shape += 1
+        self.shape = self.TETROMINOS[self.num_pieces][self.original_shape]
+        for i in range(self.rotation):
+            self.shape = np.rot90(self.shape)
 
 # Define the TetrisModel class
 class TetrisModel:
@@ -154,7 +175,7 @@ class TetrisModel:
         """
         if action == TetrisAction.TRANSFORM:
             backup_piece = self.current_piece.copy()
-            self.current_piece.rotate()
+            self.current_piece.transform()
             if self.grid.check_collision(self.current_piece, self.current_x, self.current_y):
                 # Restore if there's a collision
                 self.current_piece = backup_piece
