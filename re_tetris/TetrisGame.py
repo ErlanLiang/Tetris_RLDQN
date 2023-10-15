@@ -5,7 +5,7 @@ from TetrisModel import TetrisAction
 
 BLOCK_SIZE = 30
 GREY = (128, 128, 128)
-PURPLE = (103, 80, 164)
+PURPLE = (103, 80, 164) 
 WHITE = (255, 255, 255)
 
 if __name__ == "__main__":
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # Set up game loop
     running = True
     frames_passed = 0
-    frames_per_game_tick = 30
+    frames_per_game_tick = 60
     model.startGame()
 
     while running:

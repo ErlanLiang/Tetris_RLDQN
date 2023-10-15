@@ -60,7 +60,7 @@ class TetrisGame_1:
                 if self.model.current_piece.shape[i][j]:
                     color = self.PURPLE
                     pygame.draw.rect(self.screen, color, ((self.model.current_x + j) * self.BLOCK_SIZE, (self.model.current_y + i) * self.BLOCK_SIZE, self.BLOCK_SIZE, self.BLOCK_SIZE))
-                pygame.draw.rect(self.screen, self.WHITE, (x * self.BLOCK_SIZE, y * self.BLOCK_SIZE, self.BLOCK_SIZE, self.BLOCK_SIZE), 1)
+                pygame.draw.rect(self.screen, self.WHITE, ((self.model.current_x + j) * self.BLOCK_SIZE, (self.model.current_y + i) * self.BLOCK_SIZE, self.BLOCK_SIZE, self.BLOCK_SIZE), 1)
 
         pygame.display.set_caption(f"Tetris - Score: {self.model.score}")
         self.frames_passed += 1
@@ -74,8 +74,11 @@ if __name__ == "__main__":
         running = game.handle_events()
         game.game_tick()
         game.draw_game()
-        pygame.display.flip()
+        pygame.display.flip() 
         game.clock.tick(60)
+
+        if game.model.game_over:
+            running = False
 
     print(f"Game over! Score: {game.model.score}")
     pygame.quit()
