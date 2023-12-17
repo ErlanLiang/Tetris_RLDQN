@@ -77,7 +77,7 @@ class TetrisPiece:
 
     # Define the standard Tetris pieces as constants
     TETROMINOS = {
-        1: np.array([[0,0,0,0,1,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]),
+        1: np.array([[1,1,1,0,1,1,1,1,1,1], [0,0,0,1,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]),
         # 2: np.array([[1, 1]]),
         # 3: np.array([[1, 0], [1, 1]]),
         # 4: np.array([[1, 1], [1, 1]]),

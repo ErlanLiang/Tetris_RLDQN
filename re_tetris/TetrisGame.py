@@ -7,6 +7,10 @@ BLOCK_SIZE = 30
 GREY = (128, 128, 128)
 PURPLE = (103, 80, 164) 
 WHITE = (255, 255, 255)
+YELLOW = (255, 215, 0)
+BLUE = (72, 61, 139)
+DARKBLUE = (0,0,56)
+
 
 
 if __name__ == "__main__":
@@ -75,7 +79,15 @@ if __name__ == "__main__":
                 pygame.draw.rect(screen, WHITE, ((model.current_x + j) * BLOCK_SIZE, (model.current_y + i) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE), 1)
 
         # Draw the picker
-        pygame.draw.rect(screen, WHITE, ((model.current_x + model.picker[1]) * BLOCK_SIZE, (model.current_y + model.picker[2]) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
+        if model.picker[0] == 0:
+            pygame.draw.rect(screen, WHITE, ((model.current_x + model.picker[1]) * BLOCK_SIZE, (model.current_y + model.picker[2]) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
+        elif model.picker[0] == 1:
+            pygame.draw.rect(screen, YELLOW, ((model.current_x + model.picker[1]) * BLOCK_SIZE, (model.current_y + model.picker[2]) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
+        elif model.picker[0] == 2:
+            pygame.draw.rect(screen, BLUE, ((model.current_x + model.picker[1]) * BLOCK_SIZE, (model.current_y + model.picker[2]) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
+        elif model.picker[0] == 3:
+            pygame.draw.rect(screen, DARKBLUE, ((model.current_x + model.picker[1]) * BLOCK_SIZE, (model.current_y + model.picker[2]) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
+
 
         pygame.display.set_caption(f"Tetris - Score: {model.score}")
         frames_passed += 1
