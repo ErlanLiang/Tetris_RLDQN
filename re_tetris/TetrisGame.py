@@ -5,7 +5,6 @@ from TetrisModel import TetrisAction
 
 BLOCK_SIZE = 30
 GREY = (128, 128, 128)
-PURPLE = (103, 80, 164)
 PURPLE = (103, 80, 164) 
 WHITE = (255, 255, 255)
 
@@ -25,11 +24,11 @@ if __name__ == "__main__":
     # Set up game loop
     running = True
     frames_passed = 0
+    frames_per_game_tick = 30
     model.startGame()
 
     while running:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
             if event.type == pygame.QUIT: 
                 running = False
             elif event.type == pygame.KEYDOWN:
@@ -75,6 +74,7 @@ if __name__ == "__main__":
                     pygame.draw.rect(screen, PURPLE, ((model.current_x + j) * BLOCK_SIZE, (model.current_y + i) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
                 pygame.draw.rect(screen, WHITE, ((model.current_x + j) * BLOCK_SIZE, (model.current_y + i) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE), 1)
 
+        # Draw the picker
         pygame.draw.rect(screen, WHITE, ((model.current_x + model.picker[1]) * BLOCK_SIZE, (model.current_y + model.picker[2]) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
 
         pygame.display.set_caption(f"Tetris - Score: {model.score}")

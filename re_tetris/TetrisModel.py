@@ -82,6 +82,7 @@ class TetrisPiece:
         # 3: np.array([[1, 0], [1, 1]]),
         # 4: np.array([[1, 1], [1, 1]]),
         # 5: np.array([[1, 0],[1, 1], [1, 1]]),
+        # 5: np.array([[1, 1, 0],[1, 1, 1]]),
 
     }
 
@@ -90,6 +91,12 @@ class TetrisPiece:
         self.original_shape = self.shape
         self.num_pieces = shape
         self.rotation = 0
+        # self.shape = self.TETROMINOS[shape][0]
+        # self.original_shape = 0
+        # self.num_pieces = shape
+        # self.rotation = 0
+        # self.length = self.shape.shape[0]
+        # self.transform_length = len(self.TETROMINOS[shape])
 
     def copy(self):
         """
@@ -107,7 +114,6 @@ class TetrisPiece:
         self.rotation = (self.rotation + 1) % 4
 
     def transform(self):
-        # Transform the piece
         pass
 
 # Define the TetrisModel class
@@ -132,9 +138,10 @@ class TetrisModel:
         self.score = 0
         self.game_over = False
         self.setup = True
-        self.picker = [0, 0, 0]
-        self.backup_piece = None
-        self.backup_picker = None
+        self.picker = [0, 0, 0] # [0] 0: not picked & not on piece, 1: not picked & on piece, 2: picked & not stack, 3: picked & stack
+                                # [1] x, [2] y
+        self.backup_piece = None #back up the piece when picked
+        self.backup_picker = None #back up the picker when picked
 
     def startGame(self):
         """
@@ -156,15 +163,17 @@ class TetrisModel:
         self.picker = [0, first_x, 0]
 
         # If the new piece causes a collision, the game is over
-        if self.grid.check_collision(self.current_piece, self.current_x, self.current_y):
-            self.game_over = True  # Set the game_over flag
+        # if self.grid.check_collision(self.current_piece, self.current_x, self.current_y):
+            # self.game_over = True  # Set the game_over flag
 
+    # Check if the picker is on the piece
     def check_picker_status1(self):
         if self.current_piece[self.picker[2]][self.picker[1]] == 1:
             self.picker[0] = 1
         else:
             self.picker[0] = 0
 
+    # Ceck if the picker is on the piece(Picked)
     def check_picker_status2(self):
         if self.current_piece[self.picker[2]][self.picker[1]] == 1:
             self.picker[0] = 3
@@ -174,8 +183,9 @@ class TetrisModel:
 
     def executeMove(self, action):
         """
-        Execute the specified move.
+        Execute the specified move. Move the picker to transform the piece.
         """
+        # Not picked
         if self.picker[0] < 2:
             if action == TetrisAction.PICK: #pick
                 if self.picker[0] == 1:
@@ -214,7 +224,8 @@ class TetrisModel:
                 self.grid.add_piece(self.current_piece, self.current_x, self.current_y)
                 self.score += self.grid.remove_full_lines()
                 self.spawn_piece()
-        else:
+        #Picked
+        else: 
             if action == TetrisAction.UP: #UP
                 if self.picker[2] - 1 < 0:
                     pass
@@ -254,25 +265,25 @@ class TetrisModel:
                 else:
                     self.picker[0] = 1
 
-    def canPerformAction(self, action):
-        """
-        Check if the specified action can be performed.
-        """
-        if action == TetrisAction.TRANSFORM:
-            backup_piece = self.current_piece.copy()
-            self.current_piece.rotate()
-            can_perform = not self.grid.check_collision(self.current_piece, self.current_x, self.current_y)
-            self.current_piece = backup_piece
-            return can_perform
-        elif action == TetrisAction.LEFT:
-            return not self.grid.check_collision(self.current_piece, self.current_x - 1, self.current_y)
+    # def canPerformAction(self, action):
+    #     """
+    #     Check if the specified action can be performed.
+    #     """
+    #     if action == TetrisAction.TRANSFORM:
+    #         backup_piece = self.current_piece.copy()
+    #         self.current_piece.rotate()
+    #         can_perform = not self.grid.check_collision(self.current_piece, self.current_x, self.current_y)
+    #         self.current_piece = backup_piece
+    #         return can_perform
+    #     elif action == TetrisAction.LEFT:
+    #         return not self.grid.check_collision(self.current_piece, self.current_x - 1, self.current_y)
 
-        elif action == TetrisAction.RIGHT:
-            return not self.grid.check_collision(self.current_piece, self.current_x + 1, self.current_y)
+    #     elif action == TetrisAction.RIGHT:
+    #         return not self.grid.check_collision(self.current_piece, self.current_x + 1, self.current_y)
 
-        elif action == TetrisAction.DOWN:
-            return not self.grid.check_collision(self.current_piece, self.current_x, self.current_y + 1)
+    #     elif action == TetrisAction.DOWN:
+    #         return not self.grid.check_collision(self.current_piece, self.current_x, self.current_y + 1)
 
-        elif action == TetrisAction.DONESETUP:
-            return True  # Always allowed
-        return False
+    #     elif action == TetrisAction.DONESETUP:
+    #         return True  # Always allowed
+    #     return False
