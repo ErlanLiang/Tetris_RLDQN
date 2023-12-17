@@ -8,6 +8,7 @@ GREY = (128, 128, 128)
 PURPLE = (103, 80, 164)
 WHITE = (255, 255, 255)
 
+
 if __name__ == "__main__":
     model: TetrisModel
 
@@ -32,21 +33,22 @@ if __name__ == "__main__":
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    model.executeMove(TetrisAction.LEFT)
+                    model.executeMove(TetrisAction.LEFT) 
                 elif event.key == pygame.K_RIGHT:
                     model.executeMove(TetrisAction.RIGHT)
                 elif event.key == pygame.K_DOWN:
                     model.executeMove(TetrisAction.DOWN)
                 elif event.key == pygame.K_UP:
-                    model.executeMove(TetrisAction.ROTATE)
+                    model.executeMove(TetrisAction.UP)
                 elif event.key == pygame.K_SPACE:
-                    model.executeMove(TetrisAction.DROP)
+                    model.executeMove(TetrisAction.DONESETUP)
                 elif event.key == pygame.K_z:
-                    model.executeMove(TetrisAction.TRANSFORM)
+                    model.executeMove(TetrisAction.PICK)
 
         # Execute default move every game_tick
-        if frames_passed % frames_per_game_tick == 0:
-            model.executeMove(TetrisAction.DOWN)
+        if not model.setup:
+            if frames_passed % frames_per_game_tick == 0:
+                model.executeMove(TetrisAction.DOWN)
 
         # Check if the game is over
         if model.game_over:
@@ -71,6 +73,8 @@ if __name__ == "__main__":
                 if model.current_piece.shape[i][j]:
                     pygame.draw.rect(screen, PURPLE, ((model.current_x + j) * BLOCK_SIZE, (model.current_y + i) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
                 pygame.draw.rect(screen, WHITE, ((model.current_x + j) * BLOCK_SIZE, (model.current_y + i) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE), 1)
+
+        pygame.draw.rect(screen, WHITE, ((model.current_x + model.picker[1]) * BLOCK_SIZE, (model.current_y + model.picker[2]) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
 
         pygame.display.set_caption(f"Tetris - Score: {model.score}")
         frames_passed += 1

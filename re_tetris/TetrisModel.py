@@ -4,12 +4,12 @@ from enum import IntEnum
 
 # Define the TetrisAction enum
 class TetrisAction(IntEnum):
-    TRANSFORM = 0
+    PICK = 0
     LEFT = 1
     RIGHT = 2
-    DROP = 3
+    DONESETUP = 3
     DOWN = 4
-    ROTATE = 5
+    UP = 5
 
 # Define the TetrisGrid class
 class TetrisGrid:
@@ -77,11 +77,11 @@ class TetrisPiece:
 
     # Define the standard Tetris pieces as constants
     TETROMINOS = {
-        1: np.array([[1]]),
-        2: np.array([[1, 1]]),
-        3: np.array([[1, 0], [1, 1]]),
-        4: np.array([[1, 1], [1, 1]]),
-        5: np.array([[1, 0],[1, 1], [1, 1]]),
+        1: np.array([[0,0,0,0,1,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]),
+        # 2: np.array([[1, 1]]),
+        # 3: np.array([[1, 0], [1, 1]]),
+        # 4: np.array([[1, 1], [1, 1]]),
+        # 5: np.array([[1, 0],[1, 1], [1, 1]]),
 
     }
 
@@ -121,6 +121,8 @@ class TetrisModel:
     current_x: int
     current_y: int
     score: int
+    setup: bool
+    picker: list
 
     def __init__(self):
         self.grid = TetrisGrid()
@@ -129,6 +131,10 @@ class TetrisModel:
         self.current_y = 0
         self.score = 0
         self.game_over = False
+        self.setup = True
+        self.picker = [0, 0, 0]
+        self.backup_piece = None
+        self.backup_picker = None
 
     def startGame(self):
         """
@@ -141,51 +147,112 @@ class TetrisModel:
         Spawn a new piece at the top-middle of the grid.
         """
         self.current_piece = TetrisPiece(random.choice(list(TetrisPiece.TETROMINOS.keys())))
-        self.current_x = self.WIDTH // 2 - self.current_piece.shape.shape[1] // 2
+        # self.current_x = self.WIDTH // 2 - self.current_piece.shape.shape[1] // 2
+        # self.current_y = 0  # Start at the top of the grid
+        self.current_x = 0
         self.current_y = 0  # Start at the top of the grid
+        first_x = self.WIDTH // 2
+        self.setup = True
+        self.picker = [0, first_x, 0]
 
         # If the new piece causes a collision, the game is over
         if self.grid.check_collision(self.current_piece, self.current_x, self.current_y):
             self.game_over = True  # Set the game_over flag
 
+    def check_picker_status1(self):
+        if self.current_piece[self.picker[2]][self.picker[1]] == 1:
+            self.picker[0] = 1
+        else:
+            self.picker[0] = 0
+
+    def check_picker_status2(self):
+        if self.current_piece[self.picker[2]][self.picker[1]] == 1:
+            self.picker[0] = 3
+        else:
+            self.picker[0] = 2
+            self.current_piece[self.picker[2]][self.picker[1]] = 1
+
     def executeMove(self, action):
         """
         Execute the specified move.
         """
-        if action == TetrisAction.TRANSFORM:
-            backup_piece = self.current_piece.copy()
-            self.current_piece.rotate()
-            if self.grid.check_collision(self.current_piece, self.current_x, self.current_y):
-                # Restore if there's a collision
-                self.current_piece = backup_piece
-        elif action == TetrisAction.ROTATE:
-            backup_piece = self.current_piece.copy()
-            self.current_piece.rotate()
-            if self.grid.check_collision(self.current_piece, self.current_x, self.current_y):
-                # Restore if there's a collision
-                self.current_piece = backup_piece
-        elif action == TetrisAction.LEFT:
-            if not self.grid.check_collision(self.current_piece, self.current_x - 1, self.current_y):
-                self.current_x -= 1
-        elif action == TetrisAction.RIGHT:
-            if not self.grid.check_collision(self.current_piece, self.current_x + 1, self.current_y):
-                self.current_x += 1
-        elif action == TetrisAction.DOWN:
-            if not self.grid.check_collision(self.current_piece, self.current_x, self.current_y + 1):
-                self.current_y += 1
-            else:
+        if self.picker[0] < 2:
+            if action == TetrisAction.PICK: #pick
+                if self.picker[0] == 1:
+                    self.backup_picker = self.picker.copy()
+                    self.picker[0] = 2
+                    self.backup_piece = self.current_piece.copy()
+                    
+            elif action == TetrisAction.UP: #UP
+                if self.picker[2] - 1 < 0:
+                    pass
+                else:
+                    self.picker[2] = self.picker[2] - 1
+                self.check_picker_status1
+            elif action == TetrisAction.LEFT:
+                if self.picker[1] - 1 < 0:
+                    pass
+                else:
+                    self.picker[1] = self.picker[1] - 1
+                self.check_picker_status1
+            elif action == TetrisAction.RIGHT:
+                if self.picker[1] + 1 > 9:
+                    pass
+                else:
+                    self.picker[1] = self.picker[1] + 1
+                self.check_picker_status1
+            elif action == TetrisAction.DOWN:
+                if self.picker[2] + 1 > 2:
+                    pass
+                else:
+                    self.picker[2] = self.picker[2] + 1
+                self.check_picker_status1
+            elif action == TetrisAction.DONESETUP:
+                while not self.grid.check_collision(self.current_piece, self.current_x, self.current_y + 1):
+                    self.current_y += 1
+                self.setup = False
                 self.grid.add_piece(self.current_piece, self.current_x, self.current_y)
                 self.score += self.grid.remove_full_lines()
                 self.spawn_piece()
-                # Check for game over
-                if self.grid.check_collision(self.current_piece, self.current_x, self.current_y):
-                    self.game_over = True
-        elif action == TetrisAction.DROP:
-            while not self.grid.check_collision(self.current_piece, self.current_x, self.current_y + 1):
-                self.current_y += 1
-            self.grid.add_piece(self.current_piece, self.current_x, self.current_y)
-            self.score += self.grid.remove_full_lines()
-            self.spawn_piece()
+        else:
+            if action == TetrisAction.UP: #UP
+                if self.picker[2] - 1 < 0:
+                    pass
+                else:
+                    if self.picker[0] != 3:
+                        self.current_piece[self.picker[2]][self.picker[1]] = 0
+                    self.picker[2] -= 1
+                    self.check_picker_status2
+            elif action == TetrisAction.LEFT:
+                if self.picker[1] - 1 < 0:
+                    pass
+                else:
+                    if self.picker[0] != 3:
+                        self.current_piece[self.picker[2]][self.picker[1]] = 0
+                    self.picker[1] -= 1
+                    self.check_picker_status2
+            elif action == TetrisAction.RIGHT:
+                if self.picker[1] + 1 > 9:
+                    pass
+                else:
+                    if self.picker[0] != 3:
+                        self.current_piece[self.picker[2]][self.picker[1]] = 0
+                    self.picker[1] += 1
+                    self.check_picker_status2
+            elif action == TetrisAction.DOWN:
+                if self.picker[2] + 1 > 2:
+                    pass
+                else:
+                    if self.picker[0] != 3:
+                        self.current_piece[self.picker[2]][self.picker[1]] = 0
+                    self.picker[2] += 1
+                    self.check_picker_status2
+            elif action == TetrisAction.PICK: #pick
+                if self.picker[0] == 3:
+                    self.current_piece = self.backup_piece
+                    self.picker = self.backup_picker
+                else:
+                    self.picker[0] = 1
 
     def canPerformAction(self, action):
         """
@@ -206,6 +273,6 @@ class TetrisModel:
         elif action == TetrisAction.DOWN:
             return not self.grid.check_collision(self.current_piece, self.current_x, self.current_y + 1)
 
-        elif action == TetrisAction.DROP:
+        elif action == TetrisAction.DONESETUP:
             return True  # Always allowed
         return False
