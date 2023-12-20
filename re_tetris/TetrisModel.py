@@ -53,20 +53,25 @@ class TetrisGrid:
 
         return lines_removed
 
-    def check_collision(self, piece, x, y):
+    def check_collision(self, piece, y):
         """
         Check if placing the piece at the specified position would cause a collision.
         """
-        for i in range(piece.shape.shape[0]):
-            for j in range(piece.shape.shape[1]):
-                if piece.shape[i][j]:
-                    # Check if piece is outside the grid
-                    if x + j < 0 or x + j >= self.WIDTH or y + i >= self.HEIGHT:
-                        return True
-                    # Check if piece collides with another piece
-                    if self.grid[y + i][x + j]:
-                        return True
-        return False
+        piece_height = piece.shape.shape[0]
+        grid_height = self.grid.shape[0]
+
+        # Check if the piece is out of the board's vertical bounds
+        if y < 0 or (y + piece_height) > grid_height:
+            return True
+
+        # Extract the relevant part of the board
+        grid_slice = self.grid[y:y + piece_height]
+
+        # Check for collision
+        and_result = np.logical_and(grid_slice, piece.shape)
+        collision = np.any(and_result)
+
+        return collision
 
 # Define the TetrisPiece class
 class TetrisPiece:
@@ -108,6 +113,19 @@ class TetrisPiece:
 
     def transform(self):
         pass
+
+    def update_piece_shape(self):
+        first_non_empty_row = 0
+        last_non_empty_row = self.shape.shape[0] - 1
+
+        while first_non_empty_row <= last_non_empty_row and np.all(self.shape[first_non_empty_row] == 0):
+            first_non_empty_row += 1
+
+        while last_non_empty_row >= first_non_empty_row and np.all(self.shape[last_non_empty_row] == 0):
+            last_non_empty_row -= 1
+
+        # Slice the array to keep only non-empty edge rows
+        self.shape = self.shape[first_non_empty_row:last_non_empty_row+1]
 
 # Define the TetrisModel class
 class TetrisModel:
@@ -217,8 +235,10 @@ class TetrisModel:
                     self.check_picker_status1()
 
             elif action == TetrisAction.DONESETUP:
-                while not self.grid.check_collision(self.current_piece, self.current_x, self.current_y + 1):
-                    self.current_y += 1
+                self.current_piece.update_piece_shape()
+                self.current_y = self.HEIGHT - self.current_piece.shape.shape[0]
+                while self.grid.check_collision(self.current_piece, self.current_y):
+                    self.current_y -= 1
                 self.setup = False
                 self.grid.add_piece(self.current_piece, self.current_x, self.current_y)
                 self.score += self.grid.remove_full_lines()
