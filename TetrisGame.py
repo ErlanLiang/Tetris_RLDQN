@@ -2,6 +2,7 @@ import pygame
 from TetrisModel import TetrisModel
 from TetrisModel import TetrisAction
 
+# Constants
 BLOCK_SIZE = 30
 GREY = (128, 128, 128)
 PURPLE = (103, 80, 164) 
@@ -11,10 +12,7 @@ BLUE = (72, 61, 139)
 DARKBLUE = (0,0,56)
 
 
-
 if __name__ == "__main__":
-    model: TetrisModel
-
     # Initialize the Tetris model
     model = TetrisModel()
 
@@ -30,7 +28,9 @@ if __name__ == "__main__":
     frames_per_game_tick = 30
     model.startGame()
 
+    # Game loop
     while running:
+        # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
                 running = False
@@ -44,11 +44,11 @@ if __name__ == "__main__":
                 elif event.key == pygame.K_UP:
                     model.executeMove(TetrisAction.UP)
                 elif event.key == pygame.K_SPACE:
-                    model.executeMove(TetrisAction.DONESETUP)
+                    model.executeMove(TetrisAction.COMMIT)
                 elif event.key == pygame.K_z:
                     model.executeMove(TetrisAction.PICK)
 
-        # Execute default move every game_tick
+        # Moves down every game_tick (Not used anymore, but kept for future use)
         if not model.setup:
             if frames_passed % frames_per_game_tick == 0:
                 model.executeMove(TetrisAction.DOWN)
@@ -57,11 +57,11 @@ if __name__ == "__main__":
         if model.game_over:
             running = False
 
+        # Draw the background
         screen.fill((0, 0, 0))
 
-        current_grid = model.grid.grid
-
         # Draw the grid on screen
+        current_grid = model.grid.grid
         for x in range(model.WIDTH):
             for y in range(model.HEIGHT):
                 if current_grid[y][x]:
@@ -77,7 +77,7 @@ if __name__ == "__main__":
                     pygame.draw.rect(screen, PURPLE, ((model.current_x + j) * BLOCK_SIZE, (model.current_y + i) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
                 pygame.draw.rect(screen, WHITE, ((model.current_x + j) * BLOCK_SIZE, (model.current_y + i) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE), 1)
 
-        # Draw the picker
+        # Draw the piece picker
         if model.picker[0] == 0:
             pygame.draw.rect(screen, WHITE, ((model.current_x + model.picker[1]) * BLOCK_SIZE, (model.current_y + model.picker[2]) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
         elif model.picker[0] == 1:
@@ -86,7 +86,6 @@ if __name__ == "__main__":
             pygame.draw.rect(screen, BLUE, ((model.current_x + model.picker[1]) * BLOCK_SIZE, (model.current_y + model.picker[2]) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
         elif model.picker[0] == 3:
             pygame.draw.rect(screen, DARKBLUE, ((model.current_x + model.picker[1]) * BLOCK_SIZE, (model.current_y + model.picker[2]) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
-
 
         pygame.display.set_caption(f"Tetris - Score: {model.score}")
         frames_passed += 1
