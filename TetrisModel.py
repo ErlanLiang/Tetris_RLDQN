@@ -154,8 +154,9 @@ class TetrisModel:
         self.score = 0
         self.game_over = False
         self.setup = True
-        self.picker = [0, 0, 0] # [0] 0: not picked & not on piece, 1: not picked & on piece, 2: picked & not stack, 3: picked & stack
-                                # [1] x, [2] y
+        self.picker = [0, 0, 0] # [0] Status0: not picked & not on piece; Status1: not picked & on piece; 
+                                #     Status2: picked & not stack;        Status3: picked & stack.
+                                # [1] x,    [2] y
         self.backup_piece = None #back up the piece when picked
         self.backup_picker = None #back up the picker when picked
 
