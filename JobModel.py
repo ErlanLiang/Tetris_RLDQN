@@ -19,7 +19,7 @@ def initialize_job_data():
     JOB_DATA, piece_info, JOB_ID = handle_type_info_file(JOB_TYPE_PATH)                                                                    
 
     #SETUP_RULE[colum][from job][to job] = setup time(int)
-    SETUP_RULE, MAX_SETUP_TIME = handle_setup_file(SETUP_PATH, list(JOB_DATA.keys()))                                                                                     # = time(int)
+    SETUP_RULE, MAX_SETUP_TIME = handle_setup_file(SETUP_PATH, list(JOB_DATA.keys()))
 
     NUM_TYPE = int(piece_info[0][1])  # Number of types of job
 
@@ -57,15 +57,31 @@ class Job:
 class ScheduleGrid:
     HEIGHT: int
     WIDTH: int
-    data: deque
     grid: np.ndarray
-    num_pieces: int
     curr_top: list[str]
     curr_height: list[int]
+    
+
+    def __init__(self, width: int, height: int):
+        self.grid = np.zeros(
+            (self.HEIGHT, self.WIDTH), dtype=int) # Grid of the schedule
+
+        self.HEIGHT = height
+        self.WIDTH = width
+
+        self.curr_top = [None] * self.WIDTH       # Current top of the grid job piece type
+        self.curr_height = [0] * self.WIDTH       # Current height of the grid
+    
+class ScheduleModel:
+    HEIGHT: int
+    WIDTH: int
+    data: deque
     curr_time: int
     curr_job: list[Job]
+    num_pieces: int
 
     def __init__(self):
+        initialize_job_data()                     # Initialize the job data
         self.data = deque()                       # Data of upcoming job of the schedule
         with open(JOB_INFO_PATH, encoding='utf-8-sig') as file:
             for line in csv.reader(file):
@@ -74,14 +90,12 @@ class ScheduleGrid:
         grid_info = self.data.popleft()
         self.data.popleft()
 
+        # Setup the grid
         self.num_pieces = int(grid_info[1])       # Number of pieces
         self.WIDTH = int(grid_info[3])            # Width of the grid(M)
         self.HEIGHT = 22 + MAX_SETUP_TIME         # Height of the grid(including hidden rows(MAX_SETUP_TIME))
-        self.grid = np.zeros(
-            (self.HEIGHT, self.WIDTH), dtype=int) # Grid of the schedule
+        self.grid = ScheduleGrid(self.WIDTH, self.HEIGHT)
 
-        self.curr_top = [None] * self.WIDTH       # Current top of the grid job piece type
-        self.curr_height = [0] * self.WIDTH       # Current height of the grid
         self.curr_time = 0                        # Current time of the grid
         self.curr_job = []                        # Current time's job of the grid
     
@@ -98,13 +112,12 @@ class ScheduleGrid:
             self.curr_job.append(Job(self.data.popleft()[1]))
 
         # current height all minus 1
-        self.curr_height = [i - 1 for i in self.curr_height]
+        self.grid.curr_height = [i - 1 for i in self.grid.curr_height]
 
-        # Update the grid    
+        # Update the grid   
 
 
 # initialize function below
-
 def handle_type_info_file(type_info_file: str):
     """
     Handle the type info file and 
