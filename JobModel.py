@@ -25,8 +25,34 @@ def initialize_job_data():
 
     NUM_COL = int(piece_info[0][3])                       # Number of columns
 
+class Job:
+    name: str
+    order: list[int]
+    shape: np.ndarray
+
+    def __init__(self, name: str):
+        self.name = name
+        self.order = JOB_DATA[name][0].copy() # Order of the columns
+        self.shape = JOB_DATA[name][1].copy() # Shape of the job piece
+    
+    def drop(self):
+        """
+        Drop one part of the job piece into the grid,
+        update the shape and order of the job piece.
+        """
+        pass
+
+
 class ScheduleGrid:
     HEIGHT: int
+    WIDTH: int
+    data: deque
+    grid: np.ndarray
+    num_pieces: int
+    curr_top: list[str]
+    curr_height: list[int]
+    curr_time: int
+    curr_job: list[Job]
 
     def __init__(self):
         self.data = deque()                       # Data of upcoming job of the schedule
@@ -64,26 +90,6 @@ class ScheduleGrid:
         self.curr_height = [i - 1 for i in self.curr_height]
 
         # Update the grid 
-
-
-
-
-
-class Job:
-
-    def __init__(self, name: str):
-        self.name = name
-        self.order = JOB_DATA[name][0].copy() # Order of the columns
-        self.shape = JOB_DATA[name][1].copy() # Shape of the job piece
-    
-    def drop(self):
-        """
-        Drop one part of the job piece into the grid,
-        update the shape and order of the job piece.
-        """
-        pass
-
-
     
 
 def handle_type_info_file(type_info_file: str):
