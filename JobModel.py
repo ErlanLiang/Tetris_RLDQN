@@ -1,7 +1,6 @@
 import numpy as np
 import csv
 from collections import deque
-from enum import IntEnum
 
 JOB_DATA: dict
 SETUP_RULE: dict
@@ -9,14 +8,14 @@ NUM_TYPE: int
 NUM_COL: int
 JOB_TYPE_PATH = "./data/type_info.csv"
 JOB_INFO_PATH = "./data/job_info.csv"
-SETUP_PATH = "./data/setup.csv"
+SETUP_PATH = "./data/setup_info.csv"
 MAX_SETUP_TIME: int
 JOB_ID: dict # job id -> job name
 
 def initialize_job_data():
     global JOB_DATA, NUM_TYPE, NUM_COL, MAX_SETUP_TIME, SETUP_RULE, JOB_ID
 
-    #JOB_DATA[job name] = [order(colum order), shape(nparray model), job id(int)]
+    #JOB_DATA[job name] = [order(deque colum order), shape(nparray model), job id(int)]
     JOB_DATA, piece_info, JOB_ID = handle_type_info_file(JOB_TYPE_PATH)                                                                    
 
     #SETUP_RULE[colum][from job][to job] = setup time(int)
@@ -27,21 +26,32 @@ def initialize_job_data():
     NUM_COL = int(piece_info[0][3])   # Number of columns
 
 class Job:
+    id: int
     name: str
-    order: list[int]
+    order: deque
     shape: np.ndarray
+    fix_shape: np.ndarray
+    curr_height: int
 
     def __init__(self, name: str):
         self.name = name
-        self.order = JOB_DATA[name][0].copy() # Order of the columns
-        self.shape = JOB_DATA[name][1].copy() # Shape of the job piece
+        self.order = JOB_DATA[name][0].copy()          # Order of the columns
+        self.shape = JOB_DATA[name][1].copy()          # Shape of the job piece
+        self.id = JOB_DATA[name][2]                    # ID of the job piece
+        self.fix_shape = np.rot90(self.shape)          # Fixed shape of the job piece
+        self.curr_height = 0                           # Current height of the job piece, drop part can not be lower than this height
+
     
-    def drop(self):
+    def update_drop_block(self, height: int):
         """
         Drop one part of the job piece into the grid,
-        update the shape and order of the job piece.
+        update the parameters of the job piece.
         """
-        pass
+        # Update the shape, order of the job piece and the height
+        zero = np.zeros(1, self.shape.shape[1])
+        self.shape[self.order.popleft()] = zero
+        self.fix_shape = np.rot90(self.shape)
+        self.curr_height = height  
 
 
 class ScheduleGrid:
@@ -91,6 +101,9 @@ class ScheduleGrid:
         self.curr_height = [i - 1 for i in self.curr_height]
 
         # Update the grid    
+
+
+# initialize function below
 
 def handle_type_info_file(type_info_file: str):
     """
@@ -165,7 +178,7 @@ def get_job_model(lst: list, order: list):
     Get the job nparray model from the list of job info.
     """
     pointer = 0
-    int_order = []
+    int_order = deque()
     col = sum([int(i) for i in lst])
     shape = np.zeros((len(lst), col), dtype=int)
     for i in order:
