@@ -11,19 +11,20 @@ JOB_TYPE_PATH = "./data/type_info.csv"
 JOB_INFO_PATH = "./data/job_info.csv"
 SETUP_PATH = "./data/setup.csv"
 MAX_SETUP_TIME: int
+JOB_ID: dict # job id -> job name
 
 def initialize_job_data():
-    global JOB_DATA, NUM_TYPE, NUM_COL, MAX_SETUP_TIME, SETUP_RULE
+    global JOB_DATA, NUM_TYPE, NUM_COL, MAX_SETUP_TIME, SETUP_RULE, JOB_ID
 
-    JOB_DATA, piece_info = handle_type_info_file          #JOB_DATA[job name]  
-    (JOB_TYPE_PATH)                                       # = [order(colum order), shape(nparay model)]
+    #JOB_DATA[job name] = [order(colum order), shape(nparray model), job id(int)]
+    JOB_DATA, piece_info, JOB_ID = handle_type_info_file(JOB_TYPE_PATH)                                                                    
 
-    SETUP_RULE, MAX_SETUP_TIME = handle_setup_file        #SETUP_RULE[colum][from job][to job]
-    (SETUP_PATH, list(JOB_DATA.keys()))                   # = time(int)
+    #SETUP_RULE[colum][from job][to job] = setup time(int)
+    SETUP_RULE, MAX_SETUP_TIME = handle_setup_file(SETUP_PATH, list(JOB_DATA.keys()))                                                                                     # = time(int)
 
-    NUM_TYPE = int(piece_info[0][1])                      # Number of types of job
+    NUM_TYPE = int(piece_info[0][1])  # Number of types of job
 
-    NUM_COL = int(piece_info[0][3])                       # Number of columns
+    NUM_COL = int(piece_info[0][3])   # Number of columns
 
 class Job:
     name: str
@@ -89,14 +90,15 @@ class ScheduleGrid:
         # current height all minus 1
         self.curr_height = [i - 1 for i in self.curr_height]
 
-        # Update the grid 
-    
+        # Update the grid    
 
 def handle_type_info_file(type_info_file: str):
     """
     Handle the type info file and 
     return the job model and the piece info.
     """
+    id_dict = {}
+    cur_id = 2
     piece_info = []
     i = 0
     with open(type_info_file, encoding='utf-8-sig') as file:
@@ -111,9 +113,11 @@ def handle_type_info_file(type_info_file: str):
                     order = line[1].split(",")
                     cur_data = line[2:]
                     order, shape = get_job_model(cur_data, order)
-                    data[key] = [order, shape]
+                    data[key] = [order, shape, cur_id]
+                    id_dict[cur_id] = key
+                    cur_id += 1
     file.close()
-    return data, piece_info
+    return data, piece_info, id_dict
 
 def handle_setup_file(setup_file: str, job_list: list):
     """
