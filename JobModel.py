@@ -39,7 +39,7 @@ class ScheduleGrid:
 
         self.num_pieces = int(grid_info[1])       # Number of pieces
         self.WIDTH = int(grid_info[3])            # Width of the grid(M)
-        self.HEIGHT = 22                          # Height of the grid 
+        self.HEIGHT = 22 + MAX_SETUP_TIME         # Height of the grid(including hidden rows(MAX_SETUP_TIME))
         self.grid = np.zeros(
             (self.HEIGHT, self.WIDTH), dtype=int) # Grid of the schedule
 
@@ -88,7 +88,8 @@ class Job:
 
 def handle_type_info_file(type_info_file: str):
     """
-    Handle the type info file
+    Handle the type info file and 
+    return the job model and the piece info.
     """
     piece_info = []
     i = 0
@@ -110,7 +111,8 @@ def handle_type_info_file(type_info_file: str):
 
 def handle_setup_file(setup_file: str, job_list: list):
     """
-    Handle the setup file
+    Handle the setup file, return the setup rule 
+    with a nested dictionary and the max setup time.
     """
     setup_rule = {}
     num_col = 0
