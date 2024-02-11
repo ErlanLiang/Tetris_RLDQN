@@ -78,6 +78,7 @@ class ScheduleModel:
     curr_time: int
     curr_job: list[Job]
     num_pieces: int
+    grid: ScheduleGrid
 
     def __init__(self):
         initialize_job_data()                     # Initialize the job data

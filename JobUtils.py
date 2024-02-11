@@ -1,6 +1,10 @@
 import colorsys
 
 def get_color(i):
+    if i == 0:
+        return (128, 128, 128) # Grey
+    elif i == 1:
+        return (255, 0, 0) # Red
     # Ensure the input integer maps to a unique hue.
     hue = (i * 137.5) % 360  # Using the golden angle approximation for spread
     saturation = 1.0  # Full saturation
