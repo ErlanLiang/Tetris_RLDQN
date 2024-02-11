@@ -1,3 +1,4 @@
+from enum import IntEnum
 import numpy as np
 import csv
 from collections import deque
@@ -61,13 +62,11 @@ class ScheduleGrid:
     curr_top: list[str]
     curr_height: list[int]
     
-
     def __init__(self, width: int, height: int):
-        self.grid = np.zeros(
-            (self.HEIGHT, self.WIDTH), dtype=int) # Grid of the schedule
-
         self.HEIGHT = height
         self.WIDTH = width
+        self.grid = np.zeros(
+            (self.HEIGHT, self.WIDTH), dtype=int) # Grid of the schedule
 
         self.curr_top = [None] * self.WIDTH       # Current top of the grid job piece type
         self.curr_height = [0] * self.WIDTH       # Current height of the grid
@@ -203,5 +202,18 @@ def get_job_model(lst: list, order: list):
             cur_row[pointer + j] = 1
         pointer += cur_len
     return int_order, shape
+
+class ScheduleAction(IntEnum):
+    PROGRESS = 0
+    BLOCK1 = 1
+    BLOCK2 = 2
+    BLOCK3 = 3
+    BLOCK4 = 4
+    BLOCK5 = 5
+    BLOCK6 = 6
+    BLOCK7 = 7
+    BLOCK8 = 8
+    BLOCK9 = 9
+    COMMIT = 10
 
 
