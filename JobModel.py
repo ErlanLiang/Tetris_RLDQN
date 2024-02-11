@@ -121,9 +121,9 @@ def handle_type_info_file(type_info_file: str):
 
 def handle_setup_file(setup_file: str, job_list: list):
     """
-    Handle the setup file, return the setup rule 
-    with a nested dictionary and the max setup time.
+    Handle the setup file
     """
+    max_time = 0 # max time for a setup
     setup_rule = {}
     num_col = 0
     num_job = 0
@@ -151,12 +151,14 @@ def handle_setup_file(setup_file: str, job_list: list):
                     job_name = line[0]
                     for i in range(1, len(line)):
                         setup_rule[cur_col[1]][job_name][job_list[i - 1]] = int(line[i])
+                        if int(line[i]) > max_time:
+                            max_time = int(line[i])
                     cur_job += 1
                     if cur_job > num_job:
                         cur_job = 0
                         cur_col[0] += 1
     file.close()
-    return setup_rule
+    return setup_rule, max_time
 
 def get_job_model(lst: list, order: list):
     """
