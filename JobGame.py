@@ -7,6 +7,7 @@ SCREEN_SIZE = (1680, 900)
 if __name__ == "__main__":
     # Initialize the Job model
     model = JobModel.ScheduleModel()
+    model.execute_move(JobModel.ScheduleAction.PROGRESS)
 
     # Initialize the pygame module
     pygame.init()
@@ -53,10 +54,12 @@ if __name__ == "__main__":
         screen.fill((200, 200, 200))
 
         # TODO: Draw the grid on the left side of the screen
+        # flip the y axis to draw the grid from bottom to top
+        flipped_grid = model.grid.grid[::-1]
         block_size = min(half_size[0] // model.grid.WIDTH, half_size[1] // model.grid.HEIGHT)
         for x in range(model.grid.WIDTH):
             for y in range(model.grid.HEIGHT):
-                pygame.draw.rect(screen, JobUtils.get_color(model.grid.grid[y][x]), (x * block_size, y * block_size, block_size, block_size))
+                pygame.draw.rect(screen, JobUtils.get_color(flipped_grid[y][x]), (x * block_size, y * block_size, block_size, block_size))
                 pygame.draw.rect(screen, (255, 255, 255), (x * block_size, y * block_size, block_size, block_size), 1)
         # Draw a red line for current time (counting from bottom of the grid)
         curr_time = JobModel.MAX_SETUP_TIME
