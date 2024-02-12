@@ -87,7 +87,7 @@ class ScheduleGrid:
             (self.HEIGHT, self.WIDTH), dtype=int) # Grid of the schedule
 
         self.curr_top = [None] * self.WIDTH       # Current top of the grid job piece type
-        self.curr_height = [MAX_SETUP_TIME] * self.WIDTH       # Current height of the grid
+        self.curr_height = [MAX_SETUP_TIME + 1] * self.WIDTH       # Current height of the grid
     
 class ScheduleModel:
     HEIGHT: int
@@ -202,6 +202,8 @@ class ScheduleModel:
         """
         Update the grid by adding the job piece to the grid.
         """
+        if height == MAX_SETUP_TIME:
+            height -= 1
         for i in range(drop_len):
             self.grid.grid[height + i + 1][col] = job.id
         self.grid.curr_top[col] = job.name
