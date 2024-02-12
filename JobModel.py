@@ -26,6 +26,19 @@ def initialize_job_data():
 
     NUM_COL = int(piece_info[0][3])   # Number of columns
 
+class ScheduleAction(IntEnum):
+    PROGRESS = 0
+    BLOCK1 = 1
+    BLOCK2 = 2
+    BLOCK3 = 3
+    BLOCK4 = 4
+    BLOCK5 = 5
+    BLOCK6 = 6
+    BLOCK7 = 7
+    BLOCK8 = 8
+    BLOCK9 = 9
+    COMMIT = 10
+
 class Job:
     id: int
     name: str
@@ -69,7 +82,7 @@ class ScheduleGrid:
             (self.HEIGHT, self.WIDTH), dtype=int) # Grid of the schedule
 
         self.curr_top = [None] * self.WIDTH       # Current top of the grid job piece type
-        self.curr_height = [0] * self.WIDTH       # Current height of the grid
+        self.curr_height = [1] * self.WIDTH       # Current height of the grid
     
 class ScheduleModel:
     HEIGHT: int
@@ -79,6 +92,7 @@ class ScheduleModel:
     curr_job: list[Job]
     num_pieces: int
     grid: ScheduleGrid
+    picked_job: int
 
     def __init__(self):
         initialize_job_data()                     # Initialize the job data
@@ -96,16 +110,28 @@ class ScheduleModel:
         self.HEIGHT = 22 + MAX_SETUP_TIME         # Height of the grid(including hidden rows(MAX_SETUP_TIME))
         self.grid = ScheduleGrid(self.WIDTH, self.HEIGHT)
 
-        self.curr_time = 0                        # Current time of the grid
+        self.curr_time = -1                       # Current time of the grid
         self.curr_job = []                        # Current time's job of the grid
+        self.picked_job = 0                       # Picked job of the grid
+
+    def start_game(self):
+        """
+        Start the game.
+        """
+        self.addtime()
     
-    def addtime(self):
+    def add_time(self):
         """
         Time goes by one unit.
         update the current time of the grid and the current job.
         """
         self.curr_time += 1
         time = str(self.curr_time)
+
+        # Update all current job's height
+        for i in self.curr_job:
+            if i.curr_height != 0:
+                i.curr_height -= 1
 
         # Add new job to the current job list
         while self.data[0][2] == time:
@@ -114,7 +140,35 @@ class ScheduleModel:
         # current height all minus 1
         self.grid.curr_height = [i - 1 for i in self.grid.curr_height]
 
-        # Update the grid   
+        # Update the grid by deleting the bottom row  
+    
+    def execute_move(self, action: ScheduleAction):
+        """
+        Execute the move of the game.
+        """
+        # pass
+        if action == ScheduleAction.PROGRESS:
+            self.add_time()
+        elif action == ScheduleAction.COMMIT:
+            self.commit()
+        else:
+            self.select(action)
+        
+    def commit(self):
+        """
+        Commit the current job to the grid.
+        """
+        pass
+
+    def select(self, action: ScheduleAction):
+        """
+        Select the current job.
+        """
+        pass
+    
+
+    
+
 
 
 # initialize function below
@@ -204,17 +258,6 @@ def get_job_model(lst: list, order: list):
         pointer += cur_len
     return int_order, shape
 
-class ScheduleAction(IntEnum):
-    PROGRESS = 0
-    BLOCK1 = 1
-    BLOCK2 = 2
-    BLOCK3 = 3
-    BLOCK4 = 4
-    BLOCK5 = 5
-    BLOCK6 = 6
-    BLOCK7 = 7
-    BLOCK8 = 8
-    BLOCK9 = 9
-    COMMIT = 10
+
 
 
