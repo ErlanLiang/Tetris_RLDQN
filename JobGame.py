@@ -27,9 +27,7 @@ if __name__ == "__main__":
                 running = False
             elif event.type == pygame.KEYDOWN:
                 # Handle the key presses
-                if event.key == pygame.K_RETURN:
-                    model.execute_move(JobModel.ScheduleAction.COMMIT)
-                elif event.key == pygame.K_SPACE:
+                if event.key == pygame.K_SPACE:
                     model.execute_move(JobModel.ScheduleAction.PROGRESS)
                 elif event.key == pygame.K_1:
                     model.execute_move(JobModel.ScheduleAction.BLOCK1)
@@ -53,7 +51,7 @@ if __name__ == "__main__":
         # Draw the background (light grey)
         screen.fill((200, 200, 200))
 
-        # TODO: Draw the grid on the left side of the screen
+        # Draw the grid on the left side of the screen
         # flip the y axis to draw the grid from bottom to top
         flipped_grid = model.grid.grid[::-1]
         block_size = min(half_size[0] // model.grid.WIDTH, half_size[1] // model.grid.HEIGHT)
@@ -69,7 +67,7 @@ if __name__ == "__main__":
         text = font.render(f"Current Time: {model.curr_time}", True, (255, 0, 0))
         screen.blit(text, (model.grid.WIDTH * block_size, (model.grid.HEIGHT - curr_time) * block_size))
 
-        # TODO: Draw 9 jobs from the job list on the right side of the screen (3x3 grid of grids)
+        # Draw 9 jobs from the job list on the right side of the screen (3x3 grid of grids)
         margin_for_text = 20
         starting_x = half_size[0]
         job_list = model.curr_job

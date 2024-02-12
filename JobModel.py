@@ -38,7 +38,6 @@ class ScheduleAction(IntEnum):
     BLOCK7 = 7
     BLOCK8 = 8
     BLOCK9 = 9
-    COMMIT = 10
 
 class Job:
     id: int
@@ -146,7 +145,8 @@ class ScheduleModel:
         # current height all minus 1
         self.grid.curr_height = [i - 1 for i in self.grid.curr_height]
 
-        # Update the grid by deleting the bottom row  
+        # Update the grid by deleting the bottom row
+        self.remove_bottom()
     
     def execute_move(self, action: ScheduleAction):
         """
@@ -163,6 +163,8 @@ class ScheduleModel:
         """
         Commit the current job to the grid.
         """
+        if action > len(self.curr_job):
+            return
         job = self.curr_job[action - 1]
         drop_len, drop_col = job.drop_block()
         cur_top = self.grid.curr_top[drop_col]
@@ -173,7 +175,7 @@ class ScheduleModel:
         if cur_top:
             col_str = "M" + str(drop_col + 1) 
             setup_time = SETUP_RULE[col_str][cur_top][job.name]
-            #add setup time to the grid
+            # add setup time to the grid
             self.add_setup_time(setup_time, drop_col, cur_height)
         
         # update the grid             !!!! Still need to handle if the height is higher than the grid height
