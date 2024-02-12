@@ -76,7 +76,8 @@ class ScheduleModel:
     pending_jobs: deque
     curr_time: int
     job_list: list[Job]
-    num_jobs: int
+    total_num_jobs: int
+    completed_jobs: int
     grid: ScheduleGrid
 
     def __init__(self):
@@ -92,11 +93,13 @@ class ScheduleModel:
         # Set up the grid
         grid_info = self.pending_jobs.popleft()     # Get grid info from the first line of the file
         self.pending_jobs.popleft()                 # Remove the second line of the file
-        self.num_jobs = int(grid_info[1])         # Number of jobs
+        self.total_num_jobs = int(grid_info[1])     # Number of jobs
+        self.completed_jobs = 0                     # Number of completed jobs
         width = int(grid_info[3])                   # Width of the grid(M)
         height = GRID_BASE_HEIGHT + max_setup_time  # Height of the grid(including hidden rows(MAX_SETUP_TIME))
         self.grid = ScheduleGrid(width, height)     # Initialize the grid
 
+        # Initialize other parameters
         self.curr_time = -1                         # Current time of the grid
         self.job_list = []                          # Current time's job of the grid
 
@@ -105,164 +108,37 @@ class ScheduleModel:
         Start the game.
         """
         self.add_time()
+
+    def execute_move(self, action: ScheduleAction):
+        """
+        Execute the move of the game.
+        """
+        if action == ScheduleAction.PROGRESS:
+            self.add_time()
+        else:
+            self.commit(action)
     
     def add_time(self):
         """
         Time goes by one unit.
         update the current time of the grid and the current job.
         """
-        self.curr_time += 1
-        time = str(self.curr_time)
-
-        # Update all current job's height
-        for i in self.job_list:
-            if i.lowest_time != max_job_height:
-                i.lowest_time -= 1
-
-        # Add new job to the current job list
-        while self.pending_jobs and self.pending_jobs[0][2] == time:
-            self.job_list.append(Job(self.pending_jobs.popleft()[1], self.curr_time))       
-
-        # Update the grid by deleting the bottom row  
-        self.remove_bottom()
+        pass
     
-    def execute_move(self, action: ScheduleAction):
-        """
-        Execute the move of the game.
-        """
-        # pass
-        if action == ScheduleAction.PROGRESS:
-            self.add_time()
-        else:
-            self.commit(action)
-
-        
     def commit(self, action: ScheduleAction):
         """
-        Commit the current job to the grid.
+        Commit the selected job to the grid.
         """
-        if action > len(self.job_list):
-            return
-        job = self.job_list[action - 1]
-        drop_len, drop_col = job.drop_block()
-        cur_top = self.grid.curr_top[drop_col]
-        cur_height = self.grid.curr_height[drop_col]
-        print("current top: ", cur_top)
-        # get the setup time
-        setup_time = 0
-        is_bottom = False
-        if cur_top:
-            col_str = "M" + str(drop_col + 1) 
-            setup_time = setup_rule[col_str][cur_top][job.job_type]
+        pass
 
-        # Handle height after drop > grid height
-        rows_needed = max(cur_height, job.lowest_time) + setup_time + drop_len - self.grid.HEIGHT + 1
-        print("rows needed: ", rows_needed)
-        if rows_needed > 0:
-            for i in range(rows_needed):
-                self.add_time()
-                cur_height -= 1
-        
-        if setup_time:
-            # add setup time to the grid
-            is_bottom = self.add_setup_time(setup_time, drop_col, cur_height)
-
-        # update the grid             !!!! Still need to handle if the height is higher than the grid height
-        print("current height: ", cur_height, "setup: ", setup_time,  "job height: ", job.lowest_time, "drop len: ", drop_len)
-        if cur_height + setup_time < job.lowest_time:
-            self.update_grid(drop_col, job.lowest_time, job, drop_len, is_bottom)
-        else:
-            self.update_grid(drop_col, cur_height + setup_time, job, drop_len, is_bottom)
-
-        # check if the job is finished if so, remove it from the current job list, 
-        # else update the current height
-        if not job.pieces:
-            self.job_list.pop(action - 1)
-        else:
-            job.lowest_time = self.grid.curr_height[drop_col]
-
-        # check the game status
-        self.check_status()
-        
-    def add_setup_time(self, setup_time: int, col: int, height: int):
+    def check_complete(self):
         """
-        Add the setup time to the grid.
+        Check if the game is complete.
         """
-        is_bottom = False
-        print("add setup time")
-        print("height: ", height)
-        if height == max_setup_time - 1:
-            is_bottom = True
-        for i in range(setup_time):
-            self.grid.grid[height + 1 + i][col] = 1
-        return is_bottom
-    
-    def update_grid(self, col: int, height: int, job: Job, drop_len: int, is_bottom: bool):
-        """
-        Update the grid by adding the job piece to the grid.
-        """
-        print("update grid")
-        print("height: ", height)
-        if height == max_setup_time and not is_bottom:
-            height -= 1
-        for i in range(drop_len):
-            self.grid.grid[height + i + 1][col] = job.id
-        self.grid.curr_top[col] = job.job_type
-        self.grid.curr_height[col] = height + drop_len
-    
-    def check_status(self):
-        """
-        Check the status of the game. In the folling cases, the time will add 1:
-        1, There are no empty spaces in the bottom line.
-        2, There are no job in the current job list.
-        3, A block is touching the top of the grid.
-        this function handle the 1, 2 cases.
-        """
-        # check if the bottom line is full
-        bottom_full = self.check_bottom_full()
-        while bottom_full:
-            print("bottom line is full")
-            self.add_time()
-            bottom_full = self.check_bottom_full()
-        
-        # check if the current job list is empty
-        while not self.job_list:
-            print("current job list is empty")
-            self.add_time()
-
-    def check_bottom_full(self):
-        """
-        Check if the bottom line is full.
-        """
-        for i in self.grid.grid[max_setup_time]:
-            if i == 0:
-                return False
-        return True
-    
-    def remove_bottom(self):
-        """
-        Remove the bottom row of the grid, store the row into the hidden row,
-        check the hidden row is full or not, if so, store the hidden row into the grid history.
-        """
-        # pop the bottom row, and all the rows above it move down one row, and the top row is all 0
-        bottom = self.grid.grid[max_setup_time]
-        
-        self.grid.grid = np.delete(self.grid.grid, max_setup_time, axis=0)
-        
-        self.grid.grid = np.insert(self.grid.grid, self.grid.HEIGHT - 1, np.zeros(self.grid.WIDTH), axis=0)
-
-        # store the bottom row into the hidden row
-        hidden_bottom = self.grid.grid[0]
-        # print("current grid:")
-        # print(self.grid.grid)
-        self.grid.grid = np.delete(self.grid.grid, 0, axis=0)
-        # print("after delete:")
-        # print(self.grid.grid)
-        self.grid.grid = np.insert(self.grid.grid, max_setup_time - 1, bottom, axis=0)
-        # print("hidden bottom changed:")
-        # print(self.grid.grid)
+        return self.completed_jobs == self.total_num_jobs
 
 
+# Below are the helper functions to initialize the job data
 def initialize_job_data():
     global job_data, num_types, num_cols, max_setup_time, setup_rule, job_id, max_job_height
 
@@ -365,7 +241,3 @@ def get_job_model(lst: list, order: list):
             cur_row[pointer + j] = 1
         pointer += cur_len
     return int_order, shape, col
-
-
-
-

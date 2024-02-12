@@ -92,6 +92,12 @@ if __name__ == "__main__":
                             pygame.draw.rect(screen, JobUtils.get_color(job.id), ((j * job_size) + x * job_block_size + starting_x, (i * job_size) + y * job_block_size + margin_for_text, job_block_size, job_block_size))
                         pygame.draw.rect(screen, (255, 255, 255), ((j * job_size) + x * job_block_size + starting_x, (i * job_size) + y * job_block_size + margin_for_text, job_block_size, job_block_size), 1)
 
+        # Check if the game is over
+        if model.check_complete():
+            font = pygame.font.Font(None, 100)
+            text = font.render("Game Over", True, (255, 0, 0))
+            screen.blit(text, (half_size[0] // 2, half_size[1] // 2))
+
         pygame.display.flip()
         clock.tick(60)
 
