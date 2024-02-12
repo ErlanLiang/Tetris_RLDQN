@@ -7,7 +7,7 @@ SCREEN_SIZE = (1680, 900)
 if __name__ == "__main__":
     # Initialize the Job model
     model = JobModel.ScheduleModel()
-    model.execute_move(JobModel.ScheduleAction.PROGRESS)
+    model.start_game()
 
     # Initialize the pygame module
     pygame.init()
