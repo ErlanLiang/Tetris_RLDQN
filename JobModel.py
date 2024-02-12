@@ -3,30 +3,18 @@ import numpy as np
 import csv
 from collections import deque
 
-JOB_DATA: dict
-SETUP_RULE: dict
-NUM_TYPE: int
-NUM_COL: int
-NUM_HEIGHT = 10
 JOB_TYPE_PATH = "./tests/type_info.csv"
 JOB_INFO_PATH = "./tests/job_info.csv"
 SETUP_PATH = "./tests/setup_info.csv"
-MAX_SETUP_TIME: int
-JOB_ID: dict # job id -> job name
-MAX_JOB_HEIGHT: int
+NUM_HEIGHT = 10
 
-def initialize_job_data():
-    global JOB_DATA, NUM_TYPE, NUM_COL, MAX_SETUP_TIME, SETUP_RULE, JOB_ID, MAX_JOB_HEIGHT
-
-    #JOB_DATA[job name] = [order(deque colum order), shape(nparray model), job id(int)]
-    JOB_DATA, piece_info, JOB_ID, MAX_JOB_HEIGHT = handle_type_info_file(JOB_TYPE_PATH)                                                                    
-
-    #SETUP_RULE[colum][from job][to job] = setup time(int)
-    SETUP_RULE, MAX_SETUP_TIME = handle_setup_file(SETUP_PATH, list(JOB_DATA.keys()))
-
-    NUM_TYPE = int(piece_info[0][1])  # Number of types of job
-
-    NUM_COL = int(piece_info[0][3])   # Number of columns
+job_data: dict
+job_id: dict # job id -> job name
+setup_rules: dict
+num_types: int
+num_cols: int
+max_setup_time: int
+max_job_height: int
 
 class ScheduleAction(IntEnum):
     PROGRESS = 0
@@ -40,21 +28,22 @@ class ScheduleAction(IntEnum):
     BLOCK8 = 8
     BLOCK9 = 9
 
+
 class Job:
     id: int
-    name: str
-    order: deque
+    job_type: str
+    piece_order: deque
     shape: np.ndarray
-    fix_shape: np.ndarray
+    rotated_shape: np.ndarray
     curr_time: int
 
     def __init__(self, name: str):
-        self.name = name
-        self.order = JOB_DATA[name][0].copy()          # Order of the columns
-        self.shape = JOB_DATA[name][1].copy()          # Shape of the job piece
-        self.id = JOB_DATA[name][2]                    # ID of the job piece
-        self.fix_shape = np.rot90(self.shape)          # Fixed shape of the job piece
-        self.curr_time = 0                             # Current height of the job piece, drop part can not be lower than this height
+        self.job_type = name
+        self.piece_order = job_data[name][0].copy()         # Order of the columns
+        self.shape = job_data[name][1].copy()               # Shape of the job piece
+        self.id = job_data[name][2]                         # ID of the job piece
+        self.rotated_shape = np.rot90(self.shape)           # Fixed shape of the job piece, for drawing
+        self.curr_time = 0                                  # Current height of the job piece, drop part can not be lower than this height
 
     def drop_block(self):
         """
@@ -62,15 +51,15 @@ class Job:
         update the parameters of the job piece.
         """
         # Update the shape, order of the job piece and the height
-        zero = np.zeros((1, self.shape.shape[1]), dtype=int)
-        drop_col = self.order.popleft() - 1
+        drop_col = self.piece_order.popleft() - 1
         col_len = np.sum(self.shape[drop_col], axis=0) # length of 1 the column
 
-        # update the shape of the job piece
-        self.shape[drop_col] = zero
-        self.fix_shape = np.rot90(self.shape)
+        # Update the shape of the job piece
+        self.shape[drop_col] = np.zeros((1, self.shape.shape[1]), dtype=int)
+        self.rotated_shape = np.rot90(self.shape)
 
         return col_len, drop_col
+
 
 class ScheduleGrid:
     HEIGHT: int
@@ -82,44 +71,41 @@ class ScheduleGrid:
     def __init__(self, width: int, height: int):
         self.HEIGHT = height
         self.WIDTH = width
-        self.grid = np.zeros(
-            (self.HEIGHT, self.WIDTH), dtype=int) # Grid of the schedule
+        self.grid = np.zeros((self.HEIGHT, self.WIDTH), dtype=int)  # Grid of the schedule
+        self.curr_top = [None] * self.WIDTH                         # Current top of the grid job piece type
+        self.curr_time = [0] * self.WIDTH                           # Current time of the grid of each column
 
-        self.curr_top = [None] * self.WIDTH       # Current top of the grid job piece type
-        self.curr_time = [0] * self.WIDTH       # Current time of the grid of each column
 
 class ScheduleModel:
-    HEIGHT: int
-    WIDTH: int
-    data: deque
+    pending_jobs: deque
+    job_list: list[Job]
+    num_jobs: int
     base_time: int
     max_time: int
-    curr_job: list[Job]
-    num_pieces: int
     grid: ScheduleGrid
     grid_history: np.ndarray
     game_over: bool
 
     def __init__(self):
-        initialize_job_data()                     # Initialize the job data
-        self.data = deque()                       # Data of upcoming job of the schedule
+        initialize_job_data()                                       # Initialize the job data
+        self.pending_jobs = deque()                                 # Data of upcoming job of the schedule
         with open(JOB_INFO_PATH, encoding='utf-8-sig') as file:
             for line in csv.reader(file):
-                self.data.append(line)
+                self.pending_jobs.append(line)
         file.close()
-        grid_info = self.data.popleft()
-        self.data.popleft()
+        grid_info = self.pending_jobs.popleft()
+        self.pending_jobs.popleft()
 
         # Setup the grid
-        self.num_pieces = int(grid_info[1])       # Number of pieces
-        self.WIDTH = int(grid_info[3])            # Width of the grid(M)
-        self.HEIGHT = NUM_HEIGHT + MAX_SETUP_TIME         # Height of the grid(including hidden rows(MAX_SETUP_TIME))
-        self.grid = ScheduleGrid(self.WIDTH, self.HEIGHT)
+        self.num_jobs = int(grid_info[1])                           # Number of pieces
+        width = int(grid_info[3])                                   # Width of the grid (M)
+        height = NUM_HEIGHT + max_setup_time                        # Height of the grid (including hidden rows (MAX_SETUP_TIME))
+        self.grid = ScheduleGrid(width, height)
 
-        self.base_time = 0                        # Current time of the grid
-        self.max_time = NUM_HEIGHT                # Maximum time of the grid
-        self.curr_job = []                        # Current time's job of the grid
-        self.grid_history = np.ndarray((0, self.WIDTH), dtype=int) # History of the grid
+        self.base_time = 0                                              # Current time of the grid
+        self.max_time = NUM_HEIGHT                                      # Maximum time of the grid
+        self.job_list = []                                              # Current time's job of the grid
+        self.grid_history = np.ndarray((0, self.grid.WIDTH), dtype=int) # History of the grid
         self.game_over = False
 
     def start_game(self):
@@ -127,29 +113,27 @@ class ScheduleModel:
         Start the game.
         """
         # Add new job to the current job list
-        while self.data and self.data[0][2] == '0':
-            self.curr_job.append(Job(self.data.popleft()[1]))
-            self.num_pieces -= 1
+        while self.pending_jobs and self.pending_jobs[0][2] == '0':
+            self.job_list.append(Job(self.pending_jobs.popleft()[1]))
+            self.num_jobs -= 1
         
-        # check the status of the game
+        # Check the status of the game
         self.check_status()
     
     def end_game(self):
         """
         Check if the game is over.
         """
-        print(JOB_ID)
+        print(job_id)
         self.game_over = True
 
-        # append the current grid to the grid history
-        for i in range(self.HEIGHT):
+        # Append the current grid to the grid history
+        for i in range(self.grid.HEIGHT):
             self.grid_history = np.insert(self.grid_history, 0, self.grid.grid[i], axis=0)
 
-        # print the grid history
+        # Print the grid history
         print("Schedule Grid History")
         print(self.grid_history)
-
-        
     
     def add_time(self):
         """
@@ -161,14 +145,13 @@ class ScheduleModel:
         time = str(self.base_time)
 
         # Add new job to the current job list
-        while self.data and self.data[0][2] == time and self.num_pieces > 0:
-            self.curr_job.append(Job(self.data.popleft()[1]))
-            self.num_pieces -= 1
+        while self.pending_jobs and self.pending_jobs[0][2] == time and self.num_jobs > 0:
+            self.job_list.append(Job(self.pending_jobs.popleft()[1]))
+            self.num_jobs -= 1
 
         # Update the grid by deleting the bottom row  
         self.remove_bottom()
         self.check_status()
-
 
     def check_status(self):
         """
@@ -178,15 +161,15 @@ class ScheduleModel:
         3, A block is touching the top of the grid.
         this function handle the 1, 2 cases.
         """
-        # check if the bottom line is full
+        # Check if the bottom line is full
         bottom_full = self.check_bottom_full()
         while bottom_full:
             self.add_time()
             bottom_full = self.check_bottom_full()
         
-        # check if the current job list is empty
-        while not self.curr_job:
-            if self.num_pieces == 0:
+        # Check if the current job list is empty
+        while not self.job_list:
+            if self.num_jobs == 0:
                 self.end_game()
                 break
             else:
@@ -196,7 +179,6 @@ class ScheduleModel:
         """
         Execute the move of the game.
         """
-        # pass
         if action == ScheduleAction.PROGRESS:
             self.add_time()
         else:
@@ -206,21 +188,21 @@ class ScheduleModel:
         """
         Commit the move of the game.
         """
-        if action > len(self.curr_job):
+        if action > len(self.job_list):
             return
         
-        job = self.curr_job[action - 1]
+        job = self.job_list[action - 1]
         drop_len, drop_col = job.drop_block()
         cur_top = self.grid.curr_top[drop_col]
         col_time = self.grid.curr_time[drop_col]
 
-        # get the setup time
+        # Get the setup time
         setup_time = 0
         if cur_top:
             col_str = "M" + str(drop_col + 1) 
-            setup_time = SETUP_RULE[col_str][cur_top][job.name]
+            setup_time = setup_rules[col_str][cur_top][job.job_type]
 
-        # check if the block is touching the top of the grid
+        # Check if the block is touching the top of the grid
         fix = max((job.curr_time + drop_len), (col_time + setup_time + drop_len)) - self.max_time
         if fix > 0:
             for i in range(fix):
@@ -228,7 +210,7 @@ class ScheduleModel:
         elif fix == 0:
             self.add_time()
         
-        height = col_time - self.base_time + MAX_SETUP_TIME
+        height = col_time - self.base_time + max_setup_time
         updated_time = col_time + setup_time
         if height < 0:
             height = 0
@@ -239,19 +221,19 @@ class ScheduleModel:
             time = updated_time - self.base_time
             if time < 0:
                 time = 0
-            height =  time + MAX_SETUP_TIME
+            height =  time + max_setup_time
             self.update_grid(drop_col, height, job, drop_len)
             self.grid.curr_time[drop_col] = updated_time + drop_len
         else:
             time = job.curr_time - self.base_time
             if time < 0:
                 time = 0
-            height =  time + MAX_SETUP_TIME
+            height =  time + max_setup_time
             self.update_grid(drop_col, height, job, drop_len)
             self.grid.curr_time[drop_col] = job.curr_time + drop_len
         
-        if not job.order:
-            self.curr_job.pop(action - 1)
+        if not job.piece_order:
+            self.job_list.pop(action - 1)
         else:
             job.curr_time = self.grid.curr_time[drop_col]
 
@@ -270,41 +252,50 @@ class ScheduleModel:
         """
         for i in range(drop_len):
             self.grid.grid[height + i][col] = job.id
-        self.grid.curr_top[col] = job.name
+        self.grid.curr_top[col] = job.job_type
     
     def check_bottom_full(self):
         """
         Check if the bottom line is full.
         """
-        for i in self.grid.grid[MAX_SETUP_TIME]:
+        for i in self.grid.grid[max_setup_time]:
             if i == 0:
                 return False
         return True       
 
     def remove_bottom(self):
         """
-        Remove the bottom row of the grid.
-        """
-        """
         Remove the bottom row of the grid, store the row into the hidden row,
         check the hidden row is full or not, if so, store the hidden row into the grid history.
         """
-        # pop the bottom row, and all the rows above it move down one row, and the top row is all 0
-        bottom = self.grid.grid[MAX_SETUP_TIME]       
-        self.grid.grid = np.delete(self.grid.grid, MAX_SETUP_TIME, axis=0)       
-        self.grid.grid = np.insert(self.grid.grid, self.HEIGHT - 1, np.zeros(self.WIDTH), axis=0)
+        # Pop the bottom row, and all the rows above it move down one row, and the top row is all 0
+        bottom = self.grid.grid[max_setup_time]       
+        self.grid.grid = np.delete(self.grid.grid, max_setup_time, axis=0)       
+        self.grid.grid = np.insert(self.grid.grid, self.grid.HEIGHT - 1, np.zeros(self.grid.WIDTH), axis=0)
 
-        # store the bottom row into the hidden row
+        # Store the bottom row into the hidden row
         hidden_bottom = self.grid.grid[0]
         self.grid.grid = np.delete(self.grid.grid, 0, axis=0)
-        self.grid.grid = np.insert(self.grid.grid, MAX_SETUP_TIME - 1, bottom, axis=0)
+        self.grid.grid = np.insert(self.grid.grid, max_setup_time - 1, bottom, axis=0)
 
-        #append the hidden row into the grid history
+        # Append the hidden row into the grid history
         self.grid_history = np.insert(self.grid_history, 0, hidden_bottom, axis=0)
         
 # ========================================================================================================
-# initialize function below
+# Initialize function below
 # ========================================================================================================
+def initialize_job_data():
+    global job_data, num_types, num_cols, max_setup_time, setup_rules, job_id, max_job_height
+
+    # JOB_DATA[job name] = [order(deque colum order), shape(nparray model), job id(int)]
+    job_data, piece_info, job_id, max_job_height = handle_type_info_file(JOB_TYPE_PATH)                                                                    
+
+    # SETUP_RULE[colum][from job][to job] = setup time(int)
+    setup_rules, max_setup_time = handle_setup_file(SETUP_PATH, list(job_data.keys()))
+
+    num_types = int(piece_info[0][1])  # Number of types of job
+    num_cols = int(piece_info[0][3])   # Number of columns
+
 def handle_type_info_file(type_info_file: str):
     """
     Handle the type info file and 

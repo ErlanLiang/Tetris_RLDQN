@@ -60,7 +60,7 @@ if __name__ == "__main__":
                 pygame.draw.rect(screen, JobUtils.get_color(flipped_grid[y][x]), (x * block_size, y * block_size, block_size, block_size))
                 pygame.draw.rect(screen, (255, 255, 255), (x * block_size, y * block_size, block_size, block_size), 1)
         # Draw a red line for current time (counting from bottom of the grid)
-        curr_time = JobModel.MAX_SETUP_TIME
+        curr_time = JobModel.max_setup_time
         pygame.draw.line(screen, (255, 0, 0), (0, (model.grid.HEIGHT - curr_time) * block_size), (model.grid.WIDTH * block_size, (model.grid.HEIGHT - curr_time) * block_size), 2)
         # label the current time to the right of the red line
         font = pygame.font.Font(None, 36)
@@ -70,9 +70,9 @@ if __name__ == "__main__":
         # Draw 9 jobs from the job list on the right side of the screen (3x3 grid of grids)
         margin_for_text = 20
         starting_x = half_size[0]
-        job_list = model.curr_job
+        job_list = model.job_list
         job_size = min(half_size[0] // 3, half_size[1] // 3)
-        job_block_size = min(half_size[0] // 3 // model.grid.WIDTH, ((job_size - margin_for_text) // JobModel.MAX_JOB_HEIGHT))
+        job_block_size = min(half_size[0] // 3 // model.grid.WIDTH, ((job_size - margin_for_text) // JobModel.max_job_height))
         for i in range(3):
             for j in range(3):
                 if i * 3 + j >= len(job_list):
@@ -82,10 +82,10 @@ if __name__ == "__main__":
                 pygame.draw.rect(screen, (0, 0, 0), (j * job_size + starting_x, i * job_size, job_size, job_size), 1)
                 # Label the job block
                 font = pygame.font.Font(None, 28)
-                text = font.render(f"{i*3 + j + 1} Job type: {job.name}", True, (0, 0, 0))
+                text = font.render(f"{i*3 + j + 1} Job type: {job.job_type}", True, (0, 0, 0))
                 screen.blit(text, (j * job_size + starting_x, i * job_size))
                 # Draw the job block
-                job_shape = job.fix_shape
+                job_shape = job.rotated_shape
                 for x in range(job_shape.shape[1]):
                     for y in range(job_shape.shape[0]):
                         if job_shape[y][x]:
