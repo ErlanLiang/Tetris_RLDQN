@@ -45,20 +45,20 @@ class Job:
         self.rotated_shape = np.rot90(self.shape)       # Fixed shape of the job
         self.lowest_time = time                         # The lowest time of the next job piece to be dropped
 
-    def drop_block(self):
+    def drop_piece(self):
         """
-        Drop one part of the job piece into the grid,
-        update the parameters of the job piece.
+        Drop one piece of the job into the grid,
+        then update the parameters of the job.
         """
         # Update the shape, order of the job piece and the height
         drop_col = self.pieces.popleft() - 1
-        col_len = np.sum(self.shape[drop_col], axis=0) # length of 1 the column
+        piece_len = np.sum(self.shape[drop_col], axis=0) # length of 1 the column
 
         # update the shape of the job piece
         self.shape[drop_col] = np.zeros((1, self.shape.shape[1]), dtype=int)
         self.rotated_shape = np.rot90(self.shape)
 
-        return col_len, drop_col
+        return piece_len, drop_col
         
 
 class ScheduleGrid:
@@ -72,6 +72,13 @@ class ScheduleGrid:
         self.WIDTH = width
         self.grid = np.zeros((self.HEIGHT, self.WIDTH), dtype=int)  # Grid of the schedule
         self.latest_jobs = [(0, "None") for _ in range(self.WIDTH)]    # The top row of the grid
+
+    def roll_down(self):
+        """
+        Remove the bottom row and move everything in the grid down by one unit
+        """
+        self.grid[0] = np.zeros(self.WIDTH, dtype=int)
+        self.grid = np.roll(self.grid, -1, axis=0)
 
     
 class ScheduleModel:
@@ -132,15 +139,51 @@ class ScheduleModel:
             new_job = self.pending_jobs.popleft()
             self.job_list.append(Job(new_job[1], self.curr_time))
 
-        # Remove the bottom row and move everything in the grid down by one unit
-        self.grid.grid[0] = np.zeros(self.grid.WIDTH, dtype=int)
-        self.grid.grid = np.roll(self.grid.grid, -1, axis=0)
+        # Roll down the grid
+        self.grid.roll_down()
     
     def commit(self, action: ScheduleAction):
         """
         Commit the selected job to the grid.
         """
-        pass
+        if action > len(self.job_list):
+            return
+        job = self.job_list[action - 1]
+        piece_len, drop_col = job.drop_piece()
+        
+        # Find the setup time
+        setup_time = 0
+        if self.curr_time > 0:
+            prev_job = self.job_list[drop_col]
+            setup_time = setup_rule[job_id[prev_job.id]][job_id[job.id]]
+
+        # Find the lowest time for it to be dropped (not including the setup time)
+        lowest_time = max(job.lowest_time, self.curr_time)
+
+        # Find the distance from the lowest time to the time of the last job
+        latest_job_time = self.grid.latest_jobs[drop_col][0]
+        distance = lowest_time - latest_job_time
+
+        # Find the time to place the job
+        place_time = lowest_time
+        if distance < 0:
+            # If the distance is negative, it means the job needs to 
+            # be placed above the latest job in the column
+            place_time = setup_time + latest_job_time
+        else:
+            # If the distance is positive, it means that there are some
+            # free spaces in the column that the setup time can use.
+            if distance < setup_time:
+                # If the distance is less than the setup time, place_time 
+                # need to be increased by the setup time - distance
+                place_time += setup_time - distance
+
+        # Check if the job can be placed
+        if place_time + piece_len > self.grid.HEIGHT - max_setup_time:
+            pass
+
+
+
 
     def check_complete(self):
         """
