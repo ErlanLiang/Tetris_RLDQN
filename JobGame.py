@@ -64,7 +64,7 @@ if __name__ == "__main__":
         pygame.draw.line(screen, (255, 0, 0), (0, (model.grid.HEIGHT - curr_time) * block_size), (model.grid.WIDTH * block_size, (model.grid.HEIGHT - curr_time) * block_size), 2)
         # label the current time to the right of the red line
         font = pygame.font.Font(None, 36)
-        text = font.render(f"Current Time: {model.curr_time}", True, (255, 0, 0))
+        text = font.render(f"Current Time: {model.base_time}", True, (255, 0, 0))
         screen.blit(text, (model.grid.WIDTH * block_size, (model.grid.HEIGHT - curr_time) * block_size))
 
         # Draw 9 jobs from the job list on the right side of the screen (3x3 grid of grids)
@@ -91,6 +91,9 @@ if __name__ == "__main__":
                         if job_shape[y][x]:
                             pygame.draw.rect(screen, JobUtils.get_color(job.id), ((j * job_size) + x * job_block_size + starting_x, (i * job_size) + y * job_block_size + margin_for_text, job_block_size, job_block_size))
                         pygame.draw.rect(screen, (255, 255, 255), ((j * job_size) + x * job_block_size + starting_x, (i * job_size) + y * job_block_size + margin_for_text, job_block_size, job_block_size), 1)
+        
+        if model.game_over:
+            running = False
 
         pygame.display.flip()
         clock.tick(60)
