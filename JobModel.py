@@ -8,9 +8,9 @@ SETUP_RULE: dict
 NUM_TYPE: int
 NUM_COL: int
 NUM_HEIGHT = 10
-JOB_TYPE_PATH = "./data/type_info.csv"
-JOB_INFO_PATH = "./data/job_info.csv"
-SETUP_PATH = "./data/setup_info.csv"
+JOB_TYPE_PATH = "./tests/type_info.csv"
+JOB_INFO_PATH = "./tests/job_info.csv"
+SETUP_PATH = "./tests/setup_info.csv"
 MAX_SETUP_TIME: int
 JOB_ID: dict # job id -> job name
 MAX_JOB_HEIGHT: int
