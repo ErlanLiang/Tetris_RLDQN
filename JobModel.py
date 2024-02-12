@@ -136,7 +136,7 @@ class ScheduleModel:
                 i.curr_height -= 1
 
         # Add new job to the current job list
-        while self.data[0][2] == time:
+        while self.data and self.data[0][2] == time:
             self.curr_job.append(Job(self.data.popleft()[1]))
 
         # current height all minus 1
@@ -167,10 +167,6 @@ class ScheduleModel:
         Select the current job.
         """
         pass
-    
-
-    
-
 
 
 # initialize function below

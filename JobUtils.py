@@ -1,6 +1,6 @@
 import colorsys
 
-def get_color(i):
+def get_color(i: int):
     if i == 0:
         return (128, 128, 128) # Grey
     elif i == 1:
