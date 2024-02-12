@@ -3,9 +3,9 @@ import numpy as np
 import csv
 from collections import deque
 
-JOB_TYPE_PATH = "./tests/type_info.csv"
-JOB_INFO_PATH = "./tests/job_info.csv"
-SETUP_PATH = "./tests/setup_info.csv"
+JOB_TYPE_PATH = "./data/type_info.csv"
+JOB_INFO_PATH = "./data/job_info.csv"
+SETUP_PATH = "./data/setup_info.csv"
 GRID_BASE_HEIGHT = 10
 
 job_data: dict
@@ -65,11 +65,13 @@ class ScheduleGrid:
     HEIGHT: int
     WIDTH: int
     grid: np.ndarray
+    latest_jobs: list[tuple[int, str]]  # The latest jobs added to the grid (time, job type)
     
     def __init__(self, width: int, height: int):
         self.HEIGHT = height
         self.WIDTH = width
         self.grid = np.zeros((self.HEIGHT, self.WIDTH), dtype=int)  # Grid of the schedule
+        self.latest_jobs = [(0, "None") for _ in range(self.WIDTH)]    # The top row of the grid
 
     
 class ScheduleModel:
@@ -95,8 +97,8 @@ class ScheduleModel:
         self.pending_jobs.popleft()                 # Remove the second line of the file
         self.total_num_jobs = int(grid_info[1])     # Number of jobs
         self.completed_jobs = 0                     # Number of completed jobs
-        width = int(grid_info[3])                   # Width of the grid(M)
-        height = GRID_BASE_HEIGHT + max_setup_time  # Height of the grid(including hidden rows(MAX_SETUP_TIME))
+        width = int(grid_info[3])                   # Width of the grid (M)
+        height = GRID_BASE_HEIGHT + max_setup_time  # Height of the grid (including hidden rows(max_setup_time))
         self.grid = ScheduleGrid(width, height)     # Initialize the grid
 
         # Initialize other parameters
@@ -123,7 +125,16 @@ class ScheduleModel:
         Time goes by one unit.
         update the current time of the grid and the current job.
         """
-        pass
+        self.curr_time += 1
+
+        # Add new jobs to the grid
+        while self.pending_jobs and int(self.pending_jobs[0][2]) == self.curr_time:
+            new_job = self.pending_jobs.popleft()
+            self.job_list.append(Job(new_job[1], self.curr_time))
+
+        # Remove the bottom row and move everything in the grid down by one unit
+        self.grid.grid[0] = np.zeros(self.grid.WIDTH, dtype=int)
+        self.grid.grid = np.roll(self.grid.grid, -1, axis=0)
     
     def commit(self, action: ScheduleAction):
         """
