@@ -7,9 +7,9 @@ JOB_DATA: dict
 SETUP_RULE: dict
 NUM_TYPE: int
 NUM_COL: int
-JOB_TYPE_PATH = "./data/type_info.csv"
-JOB_INFO_PATH = "./data/job_info.csv"
-SETUP_PATH = "./data/setup_info.csv"
+JOB_TYPE_PATH = "./tests/type_info.csv"
+JOB_INFO_PATH = "./tests/job_info.csv"
+SETUP_PATH = "./tests/setup_info.csv"
 MAX_SETUP_TIME: int
 JOB_ID: dict # job id -> job name
 MAX_JOB_HEIGHT: int
@@ -179,7 +179,17 @@ class ScheduleModel:
         if cur_top:
             col_str = "M" + str(drop_col + 1) 
             setup_time = SETUP_RULE[col_str][cur_top][job.name]
-            #add setup time to the grid
+
+        # Handle height after drop > grid height
+        rows_needed = max(cur_height, job.curr_height) + setup_time + drop_len - self.HEIGHT + 1
+        print("rows needed: ", rows_needed)
+        if rows_needed > 0:
+            for i in range(rows_needed):
+                self.add_time()
+                cur_height -= 1
+        
+        if setup_time:
+            # add setup time to the grid
             is_bottom = self.add_setup_time(setup_time, drop_col, cur_height)
 
         # update the grid             !!!! Still need to handle if the height is higher than the grid height
