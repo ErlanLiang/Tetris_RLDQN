@@ -12,12 +12,13 @@ JOB_INFO_PATH = "./data/job_info.csv"
 SETUP_PATH = "./data/setup_info.csv"
 MAX_SETUP_TIME: int
 JOB_ID: dict # job id -> job name
+MAX_JOB_HEIGHT: int
 
 def initialize_job_data():
-    global JOB_DATA, NUM_TYPE, NUM_COL, MAX_SETUP_TIME, SETUP_RULE, JOB_ID
+    global JOB_DATA, NUM_TYPE, NUM_COL, MAX_SETUP_TIME, SETUP_RULE, JOB_ID, MAX_JOB_HEIGHT
 
     #JOB_DATA[job name] = [order(deque colum order), shape(nparray model), job id(int)]
-    JOB_DATA, piece_info, JOB_ID = handle_type_info_file(JOB_TYPE_PATH)                                                                    
+    JOB_DATA, piece_info, JOB_ID, MAX_JOB_HEIGHT = handle_type_info_file(JOB_TYPE_PATH)                                                                    
 
     #SETUP_RULE[colum][from job][to job] = setup time(int)
     SETUP_RULE, MAX_SETUP_TIME = handle_setup_file(SETUP_PATH, list(JOB_DATA.keys()))
@@ -93,6 +94,7 @@ class ScheduleModel:
     num_pieces: int
     grid: ScheduleGrid
     picked_job: int
+    grid_history: np.ndarray
 
     def __init__(self):
         initialize_job_data()                     # Initialize the job data
@@ -118,7 +120,7 @@ class ScheduleModel:
         """
         Start the game.
         """
-        self.addtime()
+        self.add_time()
     
     def add_time(self):
         """
@@ -177,6 +179,7 @@ def handle_type_info_file(type_info_file: str):
     Handle the type info file and 
     return the job model and the piece info.
     """
+    max_job_height = 0
     id_dict = {}
     cur_id = 2
     piece_info = []
@@ -192,12 +195,14 @@ def handle_type_info_file(type_info_file: str):
                     key = line[0]
                     order = line[1].split(",")
                     cur_data = line[2:]
-                    order, shape = get_job_model(cur_data, order)
+                    order, shape, height = get_job_model(cur_data, order)
+                    if height > max_job_height:
+                        max_job_height = height
                     data[key] = [order, shape, cur_id]
                     id_dict[cur_id] = key
                     cur_id += 1
     file.close()
-    return data, piece_info, id_dict
+    return data, piece_info, id_dict, max_job_height
 
 def handle_setup_file(setup_file: str, job_list: list):
     """
@@ -256,7 +261,7 @@ def get_job_model(lst: list, order: list):
         for j in range(cur_len):
             cur_row[pointer + j] = 1
         pointer += cur_len
-    return int_order, shape
+    return int_order, shape, col
 
 
 
