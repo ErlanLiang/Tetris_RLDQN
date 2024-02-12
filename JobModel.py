@@ -112,7 +112,7 @@ class ScheduleModel:
         # Setup the grid
         self.num_pieces = int(grid_info[1])       # Number of pieces
         self.WIDTH = int(grid_info[3])            # Width of the grid(M)
-        self.HEIGHT = 22 + MAX_SETUP_TIME         # Height of the grid(including hidden rows(MAX_SETUP_TIME))
+        self.HEIGHT = 10 + MAX_SETUP_TIME         # Height of the grid(including hidden rows(MAX_SETUP_TIME))
         self.grid = ScheduleGrid(self.WIDTH, self.HEIGHT)
 
         self.curr_time = -1                       # Current time of the grid
@@ -135,7 +135,7 @@ class ScheduleModel:
 
         # Update all current job's height
         for i in self.curr_job:
-            if i.curr_height != MAX_SETUP_TIME:
+            if i.curr_height != MAX_JOB_HEIGHT:
                 i.curr_height -= 1
 
         # Add new job to the current job list
@@ -143,9 +143,12 @@ class ScheduleModel:
             self.curr_job.append(Job(self.data.popleft()[1]))
 
         # current height all minus 1
-        self.grid.curr_height = [i - 1 for i in self.grid.curr_height]
+        for i in range(self.WIDTH):
+            if self.grid.curr_height[i] != MAX_SETUP_TIME - 1:
+                self.grid.curr_height[i] -= 1
+       
 
-        # Update the grid by deleting the bottom row
+        # Update the grid by deleting the bottom row  
         self.remove_bottom()
     
     def execute_move(self, action: ScheduleAction):
@@ -169,20 +172,22 @@ class ScheduleModel:
         drop_len, drop_col = job.drop_block()
         cur_top = self.grid.curr_top[drop_col]
         cur_height = self.grid.curr_height[drop_col]
-
+        print("current top: ", cur_top)
         # get the setup time
         setup_time = 0
+        is_bottom = False
         if cur_top:
             col_str = "M" + str(drop_col + 1) 
             setup_time = SETUP_RULE[col_str][cur_top][job.name]
-            # add setup time to the grid
-            self.add_setup_time(setup_time, drop_col, cur_height)
-        
+            #add setup time to the grid
+            is_bottom = self.add_setup_time(setup_time, drop_col, cur_height)
+
         # update the grid             !!!! Still need to handle if the height is higher than the grid height
+        print("current height: ", cur_height, "setup: ", setup_time,  "job height: ", job.curr_height, "drop len: ", drop_len)
         if cur_height + setup_time < job.curr_height:
-            self.update_grid(drop_col, job.curr_height, job, drop_len)
+            self.update_grid(drop_col, job.curr_height, job, drop_len, is_bottom)
         else:
-            self.update_grid(drop_col, cur_height + setup_time, job, drop_len)
+            self.update_grid(drop_col, cur_height + setup_time, job, drop_len, is_bottom)
 
         # check if the job is finished if so, remove it from the current job list, 
         # else update the current height
@@ -191,20 +196,29 @@ class ScheduleModel:
         else:
             job.curr_height = self.grid.curr_height[drop_col]
 
+        # check the game status
         self.check_status()
         
     def add_setup_time(self, setup_time: int, col: int, height: int):
         """
         Add the setup time to the grid.
         """
+        is_bottom = False
+        print("add setup time")
+        print("height: ", height)
+        if height == MAX_SETUP_TIME - 1:
+            is_bottom = True
         for i in range(setup_time):
             self.grid.grid[height + 1 + i][col] = 1
-
-    def update_grid(self, col: int, height: int, job: Job, drop_len: int):
+        return is_bottom
+    
+    def update_grid(self, col: int, height: int, job: Job, drop_len: int, is_bottom: bool):
         """
         Update the grid by adding the job piece to the grid.
         """
-        if height == MAX_SETUP_TIME:
+        print("update grid")
+        print("height: ", height)
+        if height == MAX_SETUP_TIME and not is_bottom:
             height -= 1
         for i in range(drop_len):
             self.grid.grid[height + i + 1][col] = job.id
@@ -217,15 +231,51 @@ class ScheduleModel:
         1, There are no empty spaces in the bottom line.
         2, There are no job in the current job list.
         3, A block is touching the top of the grid.
+        this function handle the 1, 2 cases.
         """
-        pass
+        # check if the bottom line is full
+        bottom_full = self.check_bottom_full()
+        while bottom_full:
+            print("bottom line is full")
+            self.add_time()
+            bottom_full = self.check_bottom_full()
+        
+        # check if the current job list is empty
+        while not self.curr_job:
+            print("current job list is empty")
+            self.add_time()
+
+    def check_bottom_full(self):
+        """
+        Check if the bottom line is full.
+        """
+        for i in self.grid.grid[MAX_SETUP_TIME]:
+            if i == 0:
+                return False
+        return True
     
     def remove_bottom(self):
         """
-        Remove the bottom row of the grid.
+        Remove the bottom row of the grid, store the row into the hidden row,
+        check the hidden row is full or not, if so, store the hidden row into the grid history.
         """
+        # pop the bottom row, and all the rows above it move down one row, and the top row is all 0
+        bottom = self.grid.grid[MAX_SETUP_TIME]
+        
+        self.grid.grid = np.delete(self.grid.grid, MAX_SETUP_TIME, axis=0)
+        
+        self.grid.grid = np.insert(self.grid.grid, self.HEIGHT - 1, np.zeros(self.WIDTH), axis=0)
+
+        # store the bottom row into the hidden row
+        hidden_bottom = self.grid.grid[0]
+        # print("current grid:")
+        # print(self.grid.grid)
         self.grid.grid = np.delete(self.grid.grid, 0, axis=0)
-        self.grid.grid = np.vstack([self.grid.grid, np.zeros((1, self.WIDTH), dtype=int)])
+        # print("after delete:")
+        # print(self.grid.grid)
+        self.grid.grid = np.insert(self.grid.grid, MAX_SETUP_TIME - 1, bottom, axis=0)
+        # print("hidden bottom changed:")
+        # print(self.grid.grid)
 
 
         
