@@ -54,20 +54,24 @@ class Job:
         self.shape = JOB_DATA[name][1].copy()          # Shape of the job piece
         self.id = JOB_DATA[name][2]                    # ID of the job piece
         self.fix_shape = np.rot90(self.shape)          # Fixed shape of the job piece
-        self.curr_height = 0                           # Current height of the job piece, drop part can not be lower than this height
+        self.curr_height = MAX_SETUP_TIME              # Current height of the job piece, drop part can not be lower than this height
 
-    
-    def update_drop_block(self, height: int):
+    def drop_block(self):
         """
         Drop one part of the job piece into the grid,
         update the parameters of the job piece.
         """
         # Update the shape, order of the job piece and the height
-        zero = np.zeros(1, self.shape.shape[1])
-        self.shape[self.order.popleft()] = zero
-        self.fix_shape = np.rot90(self.shape)
-        self.curr_height = height  
+        zero = np.zeros((1, self.shape.shape[1]), dtype=int)
+        drop_col = self.order.popleft() - 1
+        col_len = np.sum(self.shape[drop_col], axis=0) # length of 1 the column
 
+        # update the shape of the job piece
+        self.shape[drop_col] = zero
+        self.fix_shape = np.rot90(self.shape)
+
+        return col_len, drop_col
+        
 
 class ScheduleGrid:
     HEIGHT: int
@@ -83,7 +87,7 @@ class ScheduleGrid:
             (self.HEIGHT, self.WIDTH), dtype=int) # Grid of the schedule
 
         self.curr_top = [None] * self.WIDTH       # Current top of the grid job piece type
-        self.curr_height = [1] * self.WIDTH       # Current height of the grid
+        self.curr_height = [MAX_SETUP_TIME] * self.WIDTH       # Current height of the grid
     
 class ScheduleModel:
     HEIGHT: int
@@ -132,7 +136,7 @@ class ScheduleModel:
 
         # Update all current job's height
         for i in self.curr_job:
-            if i.curr_height != 0:
+            if i.curr_height != MAX_SETUP_TIME:
                 i.curr_height -= 1
 
         # Add new job to the current job list
@@ -151,22 +155,77 @@ class ScheduleModel:
         # pass
         if action == ScheduleAction.PROGRESS:
             self.add_time()
-        elif action == ScheduleAction.COMMIT:
-            self.commit()
         else:
-            self.select(action)
+            self.commit(action)
+
         
-    def commit(self):
+    def commit(self, action: ScheduleAction):
         """
         Commit the current job to the grid.
         """
-        pass
+        job = self.curr_job[action - 1]
+        drop_len, drop_col = job.drop_block()
+        cur_top = self.grid.curr_top[drop_col]
+        cur_height = self.grid.curr_height[drop_col]
 
-    def select(self, action: ScheduleAction):
+        # get the setup time
+        setup_time = 0
+        if cur_top:
+            col_str = "M" + str(drop_col + 1) 
+            setup_time = SETUP_RULE[col_str][cur_top][job.name]
+            #add setup time to the grid
+            self.add_setup_time(setup_time, drop_col, cur_height)
+        
+        # update the grid             !!!! Still need to handle if the height is higher than the grid height
+        if cur_height + setup_time < job.curr_height:
+            self.update_grid(drop_col, job.curr_height, job, drop_len)
+        else:
+            self.update_grid(drop_col, cur_height + setup_time, job, drop_len)
+
+        # check if the job is finished if so, remove it from the current job list, 
+        # else update the current height
+        if not job.order:
+            self.curr_job.pop(action - 1)
+        else:
+            job.curr_height = self.grid.curr_height[drop_col]
+
+        self.check_status()
+        
+    def add_setup_time(self, setup_time: int, col: int, height: int):
         """
-        Select the current job.
+        Add the setup time to the grid.
+        """
+        for i in range(setup_time):
+            self.grid.grid[height + 1 + i][col] = 1
+
+    def update_grid(self, col: int, height: int, job: Job, drop_len: int):
+        """
+        Update the grid by adding the job piece to the grid.
+        """
+        for i in range(drop_len):
+            self.grid.grid[height + i + 1][col] = job.id
+        self.grid.curr_top[col] = job.name
+        self.grid.curr_height[col] = height + drop_len
+    
+    def check_status(self):
+        """
+        Check the status of the game. In the folling cases, the time will add 1:
+        1, There are no empty spaces in the bottom line.
+        2, There are no job in the current job list.
+        3, A block is touching the top of the grid.
         """
         pass
+    
+    def remove_bottom(self):
+        """
+        Remove the bottom row of the grid.
+        """
+        self.grid.grid = np.delete(self.grid.grid, 0, axis=0)
+        self.grid.grid = np.vstack([self.grid.grid, np.zeros((1, self.WIDTH), dtype=int)])
+
+
+        
+
 
 
 # initialize function below
