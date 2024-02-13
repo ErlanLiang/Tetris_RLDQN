@@ -294,4 +294,4 @@ class TetrisModel:
                     self.picker = self.backup_picker
                 else:
                     self.picker[0] = 1
-
+                    
