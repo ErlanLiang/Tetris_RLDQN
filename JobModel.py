@@ -174,6 +174,20 @@ class ScheduleModel:
                 break
             else:
                 self.add_time()
+
+    def get_available_actions(self):
+        """
+        Get the available actions of the game.
+        return a list of int representing the available actions.
+        """
+        pass
+
+    def get_available_skip_actions(self, piece: Job):
+        """
+        Get the available skip actions of the game with the given job piece.
+        return a list of int representing the available skip actions.
+        """
+        pass
     
     def execute_move(self, action: ScheduleAction):
         """
