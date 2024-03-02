@@ -182,7 +182,7 @@ class ScheduleModel:
         """
         pass
 
-    def get_available_skip_actions(self, piece: Job):
+    def get_available_skip_actions(self, piece: Job, setup_time: int):
         """
         Get the available skip actions of the game with the given job piece.
         return a list of int representing the available skip actions.
@@ -205,10 +205,10 @@ class ScheduleModel:
         if action > len(self.job_list):
             return
         
-        job = self.job_list[action - 1]
-        drop_len, drop_col = job.drop_block()
-        cur_top = self.grid.curr_top[drop_col]
-        col_time = self.grid.curr_time[drop_col]
+        job = self.job_list[action - 1]           # Get the job piece
+        drop_len, drop_col = job.drop_block()     # Get the drop piece length and the drop column
+        cur_top = self.grid.curr_top[drop_col]    # Get the current job type at the top of the column
+        col_time = self.grid.curr_time[drop_col]  # Get the current time of the column
 
         # Get the setup time
         setup_time = 0
