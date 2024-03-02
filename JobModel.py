@@ -16,19 +16,6 @@ num_cols: int
 max_setup_time: int
 max_job_height: int
 
-class ScheduleAction(IntEnum):
-    PROGRESS = 0
-    BLOCK1 = 1
-    BLOCK2 = 2
-    BLOCK3 = 3
-    BLOCK4 = 4
-    BLOCK5 = 5
-    BLOCK6 = 6
-    BLOCK7 = 7
-    BLOCK8 = 8
-    BLOCK9 = 9
-
-
 class Job:
     id: int
     job_type: str
@@ -175,37 +162,47 @@ class ScheduleModel:
             else:
                 self.add_time()
 
-    def get_available_actions(self):
+    def get_available_actions(self) -> dict[int, list[int]]:
         """
         Get the available actions of the game.
-        return a list of int representing the available actions.
+        return a dictionary of int representing the available actions. 
+        The key 0 represents the progress action.
+        The key 1 to 9 represents the block actions.
+        the value is a list of int representing the available delay times.
         """
-        pass
+        available_actions = {0: [0]}
+        for i in range(0, len(self.job_list)):
+            actions = self.get_available_skip_actions(i)
+            if actions:
+                available_actions[i + 1] = actions
+        return available_actions
 
-    def get_available_skip_actions(self, piece: Job, setup_time: int):
+    def get_available_skip_actions(self, job: int) -> list[int]:
         """
         Get the available skip actions of the game with the given job piece.
         return a list of int representing the available skip actions.
         """
-        pass
+        return [0]
     
-    def execute_move(self, action: ScheduleAction):
+    def execute_move(self, action: tuple[int, int]):
         """
         Execute the move of the game.
+        (0, 0) represents the progress action.
+        (1, x) to (9, x) represents the block actions, x represents the delay time.
         """
-        if action == ScheduleAction.PROGRESS:
+        if action == (0, 0):
             self.add_time()
         else:
             self.commit(action)
 
-    def commit(self, action: ScheduleAction):
+    def commit(self, action: tuple[int, int]):
         """
         Commit the move of the game.
         """
-        if action > len(self.job_list):
-            return
+        block_num = action[0] - 1
+        delay_time = action[1]            # TODO: handle the delay time
         
-        job = self.job_list[action - 1]           # Get the job piece
+        job = self.job_list[block_num]            # Get the job piece
         drop_len, drop_col = job.drop_block()     # Get the drop piece length and the drop column
         cur_top = self.grid.curr_top[drop_col]    # Get the current job type at the top of the column
         col_time = self.grid.curr_time[drop_col]  # Get the current time of the column

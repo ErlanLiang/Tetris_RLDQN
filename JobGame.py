@@ -28,25 +28,25 @@ if __name__ == "__main__":
             elif event.type == pygame.KEYDOWN:
                 # Handle the key presses
                 if event.key == pygame.K_SPACE:
-                    model.execute_move(JobModel.ScheduleAction.PROGRESS)
+                    model.execute_move((0, 0))
                 elif event.key == pygame.K_1:
-                    model.execute_move(JobModel.ScheduleAction.BLOCK1)
+                    model.execute_move((1, 0))
                 elif event.key == pygame.K_2:
-                    model.execute_move(JobModel.ScheduleAction.BLOCK2)
+                    model.execute_move((2, 0))
                 elif event.key == pygame.K_3:
-                    model.execute_move(JobModel.ScheduleAction.BLOCK3)
+                    model.execute_move((3, 0))
                 elif event.key == pygame.K_4:
-                    model.execute_move(JobModel.ScheduleAction.BLOCK4)
+                    model.execute_move((4, 0))
                 elif event.key == pygame.K_5:
-                    model.execute_move(JobModel.ScheduleAction.BLOCK5)
+                    model.execute_move((5, 0))
                 elif event.key == pygame.K_6:
-                    model.execute_move(JobModel.ScheduleAction.BLOCK6)
+                    model.execute_move((6, 0))
                 elif event.key == pygame.K_7:
-                    model.execute_move(JobModel.ScheduleAction.BLOCK7)
+                    model.execute_move((7, 0))
                 elif event.key == pygame.K_8:
-                    model.execute_move(JobModel.ScheduleAction.BLOCK8)
+                    model.execute_move((8, 0))
                 elif event.key == pygame.K_9:
-                    model.execute_move(JobModel.ScheduleAction.BLOCK9)
+                    model.execute_move((9, 0))
 
         # Draw the background (light grey)
         screen.fill((200, 200, 200))
