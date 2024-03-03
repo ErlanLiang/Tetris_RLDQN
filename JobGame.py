@@ -28,6 +28,7 @@ if __name__ == "__main__":
                 running = False
             elif event.type == pygame.KEYDOWN:
                 # Handle the key presses
+                model.get_available_actions()
                 if event.key == pygame.K_SPACE:
                     model.execute_move((0, 0))
                 elif event.key == pygame.K_1:
