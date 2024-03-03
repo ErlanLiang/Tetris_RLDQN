@@ -92,6 +92,7 @@ class ScheduleModel:
         self.base_time = 0                                              # Current time of the grid
         self.max_time = NUM_HEIGHT                                      # Maximum time of the grid
         self.job_list = []                                              # Current time's job of the grid
+        self.available_action = {1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {}, 8: {}, 9: {}} # Available action for each job
         self.grid_history = np.ndarray((0, self.grid.WIDTH), dtype=int) # History of the grid
         self.game_over = False
 
@@ -162,37 +163,134 @@ class ScheduleModel:
             else:
                 self.add_time()
 
-    def get_action_space_size(self) -> int:
-        """
-        Get the action space size of the game.
-        return an int representing the action space size.
-        Calculated by:
-        Add time: 1
-        Block actions: 9
-        Possible delay times: Height of the grid - 1
-        """
-        return 1 + 9 + 9 * (self.grid.HEIGHT - max_setup_time - 1)
-
-    def get_available_actions(self) -> list[tuple[int, int]]:
+    def get_available_actions(self) -> dict[int, list[int]]:
         """
         Get the available actions of the game.
-        return a list of tuple representing the available actions.
-        (0, 0) represents the progress action.
-        (1, x) to (9, x) represents the block actions, x represents the delay time.
+        return a dictionary of int representing the available actions. 
+        The key 0 represents the progress action.
+        The key 1 to 9 represents the block actions.
+        the value is a list of int representing the available delay times.
         """
-        available_actions = [(0, 0)]
-        for i in range(0, len(self.job_list)):
-            actions = self.get_available_skip_actions(i)
-            for delay in actions:
-                available_actions.append((i + 1, delay))
+        available_actions = {0: [0]}
+        job_num = len(self.job_list) if len(self.job_list) < 9 else 9
+        for i in range(0, job_num):
+            actions = self.get_available_delay_actions(i)
+            if actions:
+                available_actions[i + 1] = actions
+
+        print(self.available_action)
         return available_actions
 
-    def get_available_skip_actions(self, job: int) -> list[int]:
+    def get_available_delay_actions(self, job_int: int):
         """
         Get the available skip actions of the game with the given job piece.
         return a list of int representing the available skip actions.
-        """
-        return [0]
+        """          
+        available_delay = []
+        cur_delay = 0
+        job = self.job_list[job_int]                  # Get the job piece
+        drop_col = job.piece_order[0] - 1
+        drop_len = np.sum(job.shape[drop_col], axis=0)  # Get the drop piece length and the drop column  
+        col_str = "M" + str(drop_col + 1)
+
+        cur_top = 0                               # Get the current job type at the top of the column
+        cur_time = self.base_time                 # Get the current time of the grid
+        cur_setup_time = 0                        # Get the current setup time of the grid
+
+        if job.curr_time > self.base_time:
+            available_space = 0
+            # check the row below the job time to get to top job type
+            for y in range(job.curr_time - 1, self.base_time, -1):
+                if y == 0:
+                    break
+                available_space += 1
+                if self.grid.grid[y][drop_col] != 0:
+                    cur_top = self.grid.grid[y][drop_col]
+                    break
+            cur_top = job_id[str(cur_top)]
+
+            # Get the setup time 
+            cur_setup_time = setup_rules[col_str][cur_top][job.job_type]
+
+            if cur_setup_time - available_space > 0:
+                cur_time = job.curr_time - cur_setup_time + available_space
+            else:
+                cur_time = job.curr_time - cur_setup_time
+                
+        else: 
+            # Print the current column image:
+            cur_top = 0
+            available_space = 0
+            count = max_setup_time - 1
+
+            # Get the available setup space in the hidden rows
+            for i in range(count, -1, -1):
+                cur_block = self.grid.grid[i][drop_col]
+                if cur_block != 0:
+                    cur_top = cur_block
+                    break
+                available_space += 1
+            
+            # Get the setup time
+            if cur_top != 0:
+                cur_top = job_id[str(cur_top)]
+                col_str = "M" + str(drop_col + 1) 
+                cur_setup_time = setup_rules[col_str][cur_top][job.job_type]
+
+                if cur_setup_time - available_space > 0:
+                    cur_time = cur_time - cur_setup_time + available_space
+                else:
+                    cur_time = cur_time - cur_setup_time
+        
+        print("initialize cur_time: ", cur_time)
+        
+        # Calculate the available delay
+        self.available_action[job_int + 1] = {}  # Reset the available action
+        total_space = drop_len + cur_setup_time
+        while cur_time + cur_setup_time + drop_len < self.max_time + self.base_time:
+            print("upper bound: ", self.max_time + self.base_time)
+            print("cur_status: ", cur_time + cur_setup_time + drop_len)
+
+            available_space = 0
+            next_setup_time = 0
+            next_job_len = 0
+            next_job = '0'
+            for l in range(cur_time - self.base_time + max_setup_time, self.max_time):
+                if next_job != '0':
+                    if self.grid.grid[l][drop_col] == 0:
+                        break
+                    next_job_len += 1
+                else:
+                    if self.grid.grid[l][drop_col] == 0 or self.grid.grid[l][drop_col] == 1:
+                        available_space += 1
+                    else:
+                        next_job = str(self.grid.grid[l][drop_col])
+                        next_job_len += 1
+            print("available_space: ", available_space)
+                    
+            if next_job != '0':
+                next_setup_time = setup_rules[col_str][job.job_type][job_id[int(next_job)]]
+                check_delay = available_space - (cur_setup_time + drop_len + next_setup_time)
+                if check_delay >= 0:
+                    for i in range(check_delay):
+                        available_delay.append((job_int + 1, cur_delay))
+                        self.available_action[job_int + 1][cur_delay] = (cur_time - self.base_time + max_setup_time, cur_setup_time, drop_len, next_setup_time, job)
+                        cur_delay += 1
+                        cur_time += 1
+            else:
+                next_setup_time = 0
+                check_delay = available_space - (cur_setup_time + drop_len + next_setup_time)
+                if check_delay >= 0:
+                    for i in range(check_delay):
+                        available_delay.append((job_int + 1, cur_delay))
+                        self.available_action[job_int + 1][cur_delay] = (cur_time - self.base_time + max_setup_time, cur_setup_time, drop_len, next_setup_time, job)
+                        cur_delay += 1
+                        cur_time += 1
+                break
+            cur_time += next_job_len
+            cur_delay += next_job_len
+
+        return available_delay             
     
     def execute_move(self, action: tuple[int, int]):
         """
@@ -212,53 +310,59 @@ class ScheduleModel:
         block_num = action[0] - 1
         delay_time = action[1]            # TODO: handle the delay time
         
-        job = self.job_list[block_num]            # Get the job piece
-        drop_len, drop_col = job.drop_block()     # Get the drop piece length and the drop column
-        cur_top = self.grid.curr_top[drop_col]    # Get the current job type at the top of the column
-        col_time = self.grid.curr_time[drop_col]  # Get the current time of the column
 
-        # Get the setup time
-        setup_time = 0
-        if cur_top:
-            col_str = "M" + str(drop_col + 1) 
-            setup_time = setup_rules[col_str][cur_top][job.job_type]
+        adding = self.available_action[block_num+1][delay_time]
+        place_height = adding[0]
+        first_setup_time = adding[1]
+        drop_len = adding[2]
+        next_setup_time = adding[3]
+        job = adding[4]
+        col_len, drop_col = job.drop_block()
 
-        # Check if the block is touching the top of the grid
-        fix = max((job.curr_time + drop_len), (col_time + setup_time + drop_len)) - self.max_time
-        if fix > 0:
-            for i in range(fix):
-                self.add_time()
-        elif fix == 0:
-            self.add_time()
+        if first_setup_time > 0:
+            self.add_setup_time(first_setup_time, drop_col, place_height)
+        place_height += first_setup_time
+        for i in range(drop_len):
+            self.grid.grid[place_height + i][drop_col] = job.id
+        place_height += drop_len
+        if next_setup_time > 0:
+            self.add_setup_time(next_setup_time, drop_col, place_height)
+        # # Check if the block is touching the top of the grid
+        # fix = max((job.curr_time + drop_len), (col_time + setup_time + drop_len)) - self.max_time
+        # if fix > 0:
+        #     for i in range(fix):
+        #         self.add_time()
+        # elif fix == 0:
+        #     self.add_time()
         
-        height = col_time - self.base_time + max_setup_time
-        updated_time = col_time + setup_time
-        if height < 0:
-            height = 0
-            updated_time = self.base_time
-        self.add_setup_time(setup_time, drop_col, height)
+        # height = col_time - self.base_time + max_setup_time
+        # updated_time = col_time + setup_time
+        # if height < 0:
+        #     height = 0
+        #     updated_time = self.base_time
+        # self.add_setup_time(setup_time, drop_col, height)
 
-        if updated_time > job.curr_time:
-            time = updated_time - self.base_time
-            if time < 0:
-                time = 0
-            height =  time + max_setup_time
-            self.update_grid(drop_col, height, job, drop_len)
-            self.grid.curr_time[drop_col] = updated_time + drop_len
-        else:
-            time = job.curr_time - self.base_time
-            if time < 0:
-                time = 0
-            height =  time + max_setup_time
-            self.update_grid(drop_col, height, job, drop_len)
-            self.grid.curr_time[drop_col] = job.curr_time + drop_len
+        # if updated_time > job.curr_time:
+        #     time = updated_time - self.base_time
+        #     if time < 0:
+        #         time = 0
+        #     height =  time + max_setup_time
+        #     self.update_grid(drop_col, height, job, drop_len)
+        #     self.grid.curr_time[drop_col] = updated_time + drop_len
+        # else:
+        #     time = job.curr_time - self.base_time
+        #     if time < 0:
+        #         time = 0
+        #     height =  time + max_setup_time
+        #     self.update_grid(drop_col, height, job, drop_len)
+        #     self.grid.curr_time[drop_col] = job.curr_time + drop_len
         
-        if not job.piece_order:
-            self.job_list.pop(block_num)
-        else:
-            job.curr_time = self.grid.curr_time[drop_col]
+        # if not job.piece_order:
+        #     self.job_list.pop(block_num)
+        # else:
+        #     job.curr_time = self.grid.curr_time[drop_col]
 
-        self.check_status()
+        # self.check_status()
   
     def add_setup_time(self, setup_time: int, col: int, height: int):
         """
