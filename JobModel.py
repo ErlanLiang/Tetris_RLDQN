@@ -162,19 +162,29 @@ class ScheduleModel:
             else:
                 self.add_time()
 
-    def get_available_actions(self) -> dict[int, list[int]]:
+    def get_action_space_size(self) -> int:
+        """
+        Get the action space size of the game.
+        return an int representing the action space size.
+        Calculated by:
+        Add time: 1
+        Block actions: 9
+        Possible delay times: Height of the grid - 1
+        """
+        return 1 + 9 + 9 * (self.grid.HEIGHT - max_setup_time - 1)
+
+    def get_available_actions(self) -> list[tuple[int, int]]:
         """
         Get the available actions of the game.
-        return a dictionary of int representing the available actions. 
-        The key 0 represents the progress action.
-        The key 1 to 9 represents the block actions.
-        the value is a list of int representing the available delay times.
+        return a list of tuple representing the available actions.
+        (0, 0) represents the progress action.
+        (1, x) to (9, x) represents the block actions, x represents the delay time.
         """
-        available_actions = {0: [0]}
+        available_actions = [(0, 0)]
         for i in range(0, len(self.job_list)):
             actions = self.get_available_skip_actions(i)
-            if actions:
-                available_actions[i + 1] = actions
+            for delay in actions:
+                available_actions.append((i + 1, delay))
         return available_actions
 
     def get_available_skip_actions(self, job: int) -> list[int]:
@@ -244,7 +254,7 @@ class ScheduleModel:
             self.grid.curr_time[drop_col] = job.curr_time + drop_len
         
         if not job.piece_order:
-            self.job_list.pop(action - 1)
+            self.job_list.pop(block_num)
         else:
             job.curr_time = self.grid.curr_time[drop_col]
 
