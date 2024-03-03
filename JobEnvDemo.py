@@ -6,9 +6,16 @@ if __name__ == "__main__":
 
     # Use user input to control the environment as a human player (for testing)
     while True:
-        action = int(input("Enter block: "))
-        env.step(action)
-        env.render()
+        print(env.get_available_actions())
+        try:
+            block = int(input("Enter block: "))
+            delay = int(input("Enter delay: "))
+            env.step((block, delay))
+            env.render()
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+        except Exception as e:
+            print("An error occurred:", e)
         if env.model.game_over:
             print("Game Over!")
             break

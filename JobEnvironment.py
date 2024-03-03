@@ -32,7 +32,7 @@ class JobSchedulerEnv(gym.Env):
         self.observation_space = gym.spaces.Box(low=0, high=1, shape=grid_shape, dtype=int)     # TODO: Check if this is the correct way to define the observation space
 
     def step(self, action: tuple[int, int]):
-        self.model.execute_move((action, 0))
+        self.model.execute_move(action)
         return self.render(), None, self.model.game_over, None     # TODO: Currently returning the rendered state as the observation. Reward and info are None for now. Check if this is correct.
 
     def reset(self, seed=None):

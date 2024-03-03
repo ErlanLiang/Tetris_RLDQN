@@ -163,6 +163,17 @@ class ScheduleModel:
             else:
                 self.add_time()
 
+    def get_action_space_size(self) -> int:
+        """
+        Get the action space size of the game.
+        return an int representing the action space size.
+        Calculated by:
+        Add time: 1
+        Block actions: 9
+        Possible delay times: Height of the grid - 1
+        """
+        return 1 + 9 + 9 * (self.grid.HEIGHT - max_setup_time - 1)
+
     def get_available_actions(self) -> dict[int, list[int]]:
         """
         Get the available actions of the game.
@@ -170,6 +181,7 @@ class ScheduleModel:
         The key 0 represents the progress action.
         The key 1 to 9 represents the block actions.
         the value is a list of int representing the available delay times.
+        TODO: Change to flattened list
         """
         available_actions = {0: [0]}
         job_num = len(self.job_list) if len(self.job_list) < 9 else 9
