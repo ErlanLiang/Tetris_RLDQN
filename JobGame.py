@@ -3,7 +3,7 @@ import JobModel
 import JobUtils
 
 SCREEN_SIZE = (1680, 900)
-DEBUG_SHOW_HIDDEN = True
+DEBUG_SHOW_HIDDEN = False
 
 def handle_key(key: int):
     global selection

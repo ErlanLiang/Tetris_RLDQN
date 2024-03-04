@@ -7,6 +7,7 @@ if __name__ == "__main__":
     # Use user input to control the environment as a human player (for testing)
     while True:
         try:
+            print("Available actions:", env.get_available_actions())
             block = int(input("Enter block: "))
             delay = int(input("Enter delay: "))
             env.step((block, delay))
