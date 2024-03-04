@@ -5,6 +5,21 @@ import JobUtils
 SCREEN_SIZE = (1680, 900)
 DEBUG_SHOW_HIDDEN = True
 
+def handle_key(key: int):
+    global selection
+    if key == 10:
+        selection = None
+        return
+    if selection is None:
+        selection = key
+    else:
+        global available_actions
+        global model
+        if (selection, key) in available_actions:
+            model.execute_move((selection, key))
+            available_actions = model.get_available_actions()
+        selection = None
+
 if __name__ == "__main__":
     # Initialize the Job model
     model = JobModel.ScheduleModel()
@@ -20,6 +35,10 @@ if __name__ == "__main__":
     # Set up game loop
     running = True
 
+    # Set up variables for user input
+    selection = None
+    available_actions = model.get_available_actions()
+
     # Game loop
     while running:
         # Handle events
@@ -28,27 +47,30 @@ if __name__ == "__main__":
                 running = False
             elif event.type == pygame.KEYDOWN:
                 # Handle the key presses
-                model.get_available_actions()
                 if event.key == pygame.K_SPACE:
                     model.execute_move((0, 0))
+                elif event.key == pygame.K_0:
+                    handle_key(0)
                 elif event.key == pygame.K_1:
-                    model.execute_move((1, 0))
+                    handle_key(1)
                 elif event.key == pygame.K_2:
-                    model.execute_move((2, 0))
+                    handle_key(2)
                 elif event.key == pygame.K_3:
-                    model.execute_move((3, 0))
+                    handle_key(3)
                 elif event.key == pygame.K_4:
-                    model.execute_move((4, 0))
+                    handle_key(4)
                 elif event.key == pygame.K_5:
-                    model.execute_move((5, 0))
+                    handle_key(5)
                 elif event.key == pygame.K_6:
-                    model.execute_move((6, 0))
+                    handle_key(6)
                 elif event.key == pygame.K_7:
-                    model.execute_move((7, 0))
+                    handle_key(7)
                 elif event.key == pygame.K_8:
-                    model.execute_move((8, 0))
+                    handle_key(8)
                 elif event.key == pygame.K_9:
-                    model.execute_move((9, 0))
+                    handle_key(9)
+                elif event.key == pygame.K_r:   # Clear the selection
+                    handle_key(10)
 
         # Draw the background (light grey)
         screen.fill((200, 200, 200))
@@ -70,7 +92,10 @@ if __name__ == "__main__":
             pygame.draw.line(screen, (255, 0, 0), (0, (grid_height - curr_time) * block_size), (grid_width * block_size, (grid_height - curr_time) * block_size), 2)
         # label the current time
         font = pygame.font.Font(None, 36)
-        text = font.render(f"Current Time: {model.base_time}", True, (255, 0, 0))
+        status_text = f"Current Time: {model.base_time}"
+        if selection is not None:
+            status_text += f" | Selected: {selection}"
+        text = font.render(status_text, True, (255, 0, 0))
         screen.blit(text, (grid_width * block_size, 0))
 
         # Draw 9 jobs from the job list on the right side of the screen (3x3 grid of grids)
