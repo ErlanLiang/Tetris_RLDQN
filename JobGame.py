@@ -13,11 +13,9 @@ def handle_key(key: int):
     if selection is None:
         selection = key
     else:
-        global available_actions
         global model
-        if (selection, key) in available_actions:
+        if (selection, key) in model.get_available_actions():
             model.execute_move((selection, key))
-            available_actions = model.get_available_actions()
         selection = None
 
 if __name__ == "__main__":
@@ -37,7 +35,6 @@ if __name__ == "__main__":
 
     # Set up variables for user input
     selection = None
-    available_actions = model.get_available_actions()
 
     # Game loop
     while running:
@@ -94,7 +91,7 @@ if __name__ == "__main__":
         font = pygame.font.Font(None, 36)
         status_text = f"Current Time: {model.base_time}"
         if selection is not None:
-            status_text += f" | Selected: {selection}"
+            status_text += f"|Chose {selection}"
         text = font.render(status_text, True, (255, 0, 0))
         screen.blit(text, (grid_width * block_size, 0))
 

@@ -73,6 +73,7 @@ class ScheduleModel:
     grid_history: np.ndarray
     game_over: bool
     available_action: dict[int, dict[int, tuple[int, int, int, int, Job, int]]]
+    cached_available_actions: list[tuple[int, int]]
 
     def __init__(self):
         initialize_job_data()                                       # Initialize the job data
@@ -108,6 +109,7 @@ class ScheduleModel:
         
         # Check the status of the game
         self.check_status()
+        self.cached_available_actions = self._get_available_actions()
     
     def end_game(self):
         """
@@ -169,8 +171,11 @@ class ScheduleModel:
         Possible delay times: Height of the grid - 1
         """
         return 1 + 9 + 9 * (self.grid.HEIGHT - max_setup_time - 1)
-
+    
     def get_available_actions(self) -> list[tuple[int, int]]:
+        return self.cached_available_actions
+
+    def _get_available_actions(self) -> list[tuple[int, int]]:
         """
         Get the available actions of the game.
         Must be called before execute_move.
@@ -305,6 +310,7 @@ class ScheduleModel:
             self.add_time()
         else:
             self.commit(action)
+        self.cached_available_actions = self._get_available_actions()
 
     def commit(self, action: tuple[int, int]):
         """
