@@ -335,9 +335,14 @@ class ScheduleModel:
             self.grid.grid[place_height + i][drop_col] = job.id
         place_height += drop_len
         job.curr_time = self.base_time + place_height - max_setup_time
+        print("place_height: ", place_height)
+        if to_top > 0:
+            for i in range(to_top):
+                self.grid.grid[place_height + i][drop_col] = 0
+            place_height += to_top
         if next_setup_time > 0:
-            self.add_setup_time(next_setup_time, drop_col, place_height + to_top)
-        place_height += next_setup_time + to_top
+            self.add_setup_time(next_setup_time, drop_col, place_height)
+        place_height += next_setup_time
 
         if not job.piece_order:
             self.job_list.pop(block_num)
