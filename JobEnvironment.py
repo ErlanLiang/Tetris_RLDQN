@@ -4,16 +4,16 @@ import JobUtils
 import gymnasium as gym
 import numpy as np
 
-SCREEN_SIZE = (1280, 720)
-DEBUG_SHOW_HIDDEN = True
+SCREEN_SIZE = (1280, 720)   # Set the screen size for rendering, also used for size of grb_array
+DEBUG_SHOW_HIDDEN = True    # Set to True to show the hidden part of the grid (for debugging)
 
-# TODO: Port JobGame to gym environment
 class JobSchedulerEnv(gym.Env):
     model: JobModel.ScheduleModel
     action_space: gym.spaces.Discrete
     observation_space: gym.spaces.Box
     window: pygame.Surface
     clock: pygame.time.Clock
+    availble_actions: list[tuple[int, int]]
 
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
 
@@ -21,6 +21,7 @@ class JobSchedulerEnv(gym.Env):
         # Initialize the Job model
         self.model = JobModel.ScheduleModel()
         self.model.start_game()
+        self.availble_actions = self.model.get_available_actions()
         action_space_size = self.model.get_action_space_size()
         grid_shape = self.model.grid.grid.shape
         self.window = None
@@ -33,12 +34,14 @@ class JobSchedulerEnv(gym.Env):
 
     def step(self, action: tuple[int, int]):
         self.model.execute_move(action)
+        self.availble_actions = self.model.get_available_actions()
         return self.render(), None, self.model.game_over, None     # TODO: Currently returning the rendered state as the observation. Reward and info are None for now. Check if this is correct.
 
     def reset(self, seed=None):
         super().reset(seed=seed)
         self.model = JobModel.ScheduleModel()
         self.model.start_game()
+        self.availble_actions = self.model.get_available_actions()
         return self.render(), None      # TODO: Currently returning the rendered state as the observation. Info is None for now. Check if this is correct.
 
     def render(self):
@@ -117,4 +120,4 @@ class JobSchedulerEnv(gym.Env):
             self.clock = None
 
     def get_available_actions(self):
-        return self.model.get_available_actions()
+        return self.availble_actions

@@ -178,6 +178,7 @@ class ScheduleModel:
     def get_available_actions(self) -> list[tuple[int, int]]:
         """
         Get the available actions of the game.
+        Must be called before execute_move.
         return a dictionary of int representing the available actions. 
         The key 0 represents the progress action.
         The key 1 to 9 represents the block actions.
