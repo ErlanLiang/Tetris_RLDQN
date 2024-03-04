@@ -1,18 +1,26 @@
-# Tetris RL-DQN Usage 
+# Job Scheduler Usage 
 
 ## File Structure 
 
-- **RL_DNQ_Tetris.py** 
+- JobModel.py: 
 
-  RL-DQN Model applied on OpenAI Gym Environment & Atari 2600 Tetris ROM
+  Handles the game logic. 
 
-- **TetrisGame.py**
+- JobGame.py: 
 
-  The main file of a rewritten Tetris game with different features 
+  The human playable version of the game. 
 
-- **TetrisModel.py**
+- JobEnvironment.py: 
 
-  Game algorithm of a rewritten Tetris game with different features 
+  The file with the class that implements the OpenAI Gymnasium API. 
+
+- JobEnvDemo.py and JobEnvDemo_RGB_output.py: 
+
+  Demo files that use user input to interact with the environment. 
+
+- JobEnvDemo_random_moves.py: 
+
+  A demo that uses random inputs to interact with the environment, mimics the usage of the environment class in a training set up.
 
 ## Running the Game
 
@@ -23,46 +31,17 @@
 pip install pygame numpy
 ```
 
-**Starting the game:** Run `Tetris
+To run the Gymnasium environment, the `gymnasium` package is required. 
 
-## Game Elements
+```shell
+# To install gymnasium, run the following command
+pip install gym
+```
 
-- **TetrisPiece** -- A shape that is to be drop
-
-- **TetrisPoint** -- A single block of a `TetrisPiece`
-
-- ​    **Picker**      -- Modify Current `TetrisPiece` by moving its `TetrisPoint `
+**Starting the game:** Run `JobGame.py` to start the game. 
 
 ## Movement 
 
-- **space** : Drop `TetrisPiece`
-- ​    **z**      : Pick/Unpick `TetrisPoint`
--    **up**     : Move up ` Picker `
-- **down**  : Move down `Picker `
--   **left**    : Move left  `Picker` 
--  **right**  : Move Right  `Picker`
-
-## Picker status
-
-- White: Not on`TetrisPoint` (status 0) 
-
-![image-20240109182830475](./assets/image-20240109182830475.png)
-
-
-
-- Yellow: On `TetrisPoint` & Not picked (status 1)
-
-![image-20240109174741367](./assets/image-20240109174741367.png)
-
-
-
-- Blue: `TetrisPoint` Picked & Moving picked `TetrisPoint` (Status 2)
-
-![image-20240109174915853](./assets/image-20240109174915853.png)
-
-
-
-- Dark Blue: `TetrisPoint` Stacked & Moving picked `TetrisPoint` (Status 3)
-
-![image-20240109175309616](./assets/image-20240109175309616.png)
-
+- **space** : Advance time by 1.
+- **1-9**: Choose a block or delay time. 
+- ​**r**: Reset block choice.
