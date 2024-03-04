@@ -13,7 +13,7 @@ job_id: dict # job id -> job name
 setup_rules: dict
 num_types: int
 num_cols: int
-max_setup_time: int
+max_setup_time: int     # Maximum setup time
 max_job_height: int
 
 class Job:
@@ -49,7 +49,7 @@ class Job:
 
 
 class ScheduleGrid:
-    HEIGHT: int
+    HEIGHT: int     # Height of the grid, the actual height is HEIGHT - max_setup_time (hidden rows)
     WIDTH: int
     grid: np.ndarray
     curr_top: list[str]
@@ -72,6 +72,7 @@ class ScheduleModel:
     grid: ScheduleGrid
     grid_history: np.ndarray
     game_over: bool
+    available_action: dict[int, dict[int, tuple[int, int, int, int, Job, int]]]
 
     def __init__(self):
         initialize_job_data()                                       # Initialize the job data
@@ -174,25 +175,24 @@ class ScheduleModel:
         """
         return 1 + 9 + 9 * (self.grid.HEIGHT - max_setup_time - 1)
 
-    def get_available_actions(self) -> dict[int, list[int]]:
+    def get_available_actions(self) -> list[tuple[int, int]]:
         """
         Get the available actions of the game.
         return a dictionary of int representing the available actions. 
         The key 0 represents the progress action.
         The key 1 to 9 represents the block actions.
         the value is a list of int representing the available delay times.
-        TODO: Change to flattened list
         """
-        available_actions = {0: [0]}
+        available_actions = [(0, 0)]
         job_num = len(self.job_list) if len(self.job_list) < 9 else 9
         for i in range(0, job_num):
             actions = self.get_available_delay_actions(i)
             if actions:
-                available_actions[i + 1] = actions
+                available_actions.extend(actions)
         print(available_actions)
         return available_actions
 
-    def get_available_delay_actions(self, job_int: int):
+    def get_available_delay_actions(self, job_int: int) -> list[tuple[int, int]]:
         """
         Get the available skip actions of the game with the given job piece.
         return a list of int representing the available skip actions.
@@ -321,7 +321,7 @@ class ScheduleModel:
             
         print(" ")
 
-        return available_delay             
+        return available_delay
     
     def execute_move(self, action: tuple[int, int]):
         """
@@ -339,7 +339,7 @@ class ScheduleModel:
         Commit the move of the game.
         """
         block_num = action[0] - 1
-        delay_time = action[1]            # TODO: handle the delay time
+        delay_time = action[1]
         
         # print(self.available_action)
         # print("block_num: ", block_num)
