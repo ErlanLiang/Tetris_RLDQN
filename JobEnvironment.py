@@ -15,7 +15,9 @@ class JobSchedulerEnv(gym.Env):
     clock: pygame.time.Clock
     availble_actions: list[tuple[int, int]]
 
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 10000}
+    # The render_fps is set to a high value to make the rendering as fast as possible. 
+    # The game loop will be controlled by the environment's step function, not the rendering.
 
     def __init__(self, render_mode="human"):
         # Initialize the Job model
@@ -109,8 +111,8 @@ class JobSchedulerEnv(gym.Env):
             pygame.event.pump()
             pygame.display.flip()
             self.clock.tick(self.metadata["render_fps"])
-        else:  # self.render_mode == "rgb_array"
-            return np.transpose(pygame.surfarray.array3d(canvas), (1, 0, 2))
+        # Always return the canvas as rgb_array, even if the render_mode is "human"
+        return np.transpose(pygame.surfarray.array3d(canvas), (1, 0, 2))
 
     def close(self):
         if self.window is not None:
