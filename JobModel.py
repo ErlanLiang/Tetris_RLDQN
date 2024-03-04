@@ -341,43 +341,9 @@ class ScheduleModel:
         if fix > 0:
             for i in range(fix):
                 self.add_time()
-        # elif fix == 0:
-        #     self.add_time()
         
         self.available_action = {1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {}, 8: {}, 9: {}}
-        
         self.check_status()
-
-        
-        
-        # height = col_time - self.base_time + max_setup_time
-        # updated_time = col_time + setup_time
-        # if height < 0:
-        #     height = 0
-        #     updated_time = self.base_time
-        # self.add_setup_time(setup_time, drop_col, height)
-
-        # if updated_time > job.curr_time:
-        #     time = updated_time - self.base_time
-        #     if time < 0:
-        #         time = 0
-        #     height =  time + max_setup_time
-        #     self.update_grid(drop_col, height, job, drop_len)
-        #     self.grid.curr_time[drop_col] = updated_time + drop_len
-        # else:
-        #     time = job.curr_time - self.base_time
-        #     if time < 0:
-        #         time = 0
-        #     height =  time + max_setup_time
-        #     self.update_grid(drop_col, height, job, drop_len)
-        #     self.grid.curr_time[drop_col] = job.curr_time + drop_len
-        
-        # if not job.piece_order:
-        #     self.job_list.pop(block_num)
-        # else:
-        #     job.curr_time = self.grid.curr_time[drop_col]
-
-        # self.check_status()
   
     def add_setup_time(self, setup_time: int, col: int, height: int):
         """
@@ -427,10 +393,8 @@ class ScheduleModel:
 def initialize_job_data():
     global job_data, num_types, num_cols, max_setup_time, setup_rules, job_id, max_job_height
 
-    # JOB_DATA[job name] = [order(deque colum order), shape(nparray model), job id(int)]
     job_data, piece_info, job_id, max_job_height = handle_type_info_file(JOB_TYPE_PATH)                                                                    
 
-    # SETUP_RULE[colum][from job][to job] = setup time(int)
     setup_rules, max_setup_time = handle_setup_file(SETUP_PATH, list(job_data.keys()))
 
     num_types = int(piece_info[0][1])  # Number of types of job
