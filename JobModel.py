@@ -209,6 +209,8 @@ class ScheduleModel:
         cur_time = self.base_time                 # Get the current time of the grid
         cur_setup_time = 0                        # Get the current setup time of the grid
 
+        print("base_time: ", self.base_time)
+
         if job.curr_time > self.base_time:
             print("job.curr_time: ", job.curr_time)
             available_space = 0
@@ -217,10 +219,11 @@ class ScheduleModel:
                 # if y == 0:
                 #     break
                 available_space += 1
-                if self.grid.grid[y][drop_col] != 0:
+                if (self.grid.grid[y][drop_col] != 0) and (self.grid.grid[y][drop_col] != 1):
                     cur_top = self.grid.grid[y][drop_col]
                     break
             if cur_top != 0:
+                print(job_id)
                 cur_top = job_id[cur_top]
 
                 # Get the setup time 
@@ -241,7 +244,7 @@ class ScheduleModel:
             # Get the available setup space in the hidden rows
             for i in range(count, -1, -1):
                 cur_block = self.grid.grid[i][drop_col]
-                if cur_block != 0:
+                if cur_block != 0 and cur_block != 1:
                     cur_top = cur_block
                     break
                 available_space += 1
@@ -270,12 +273,15 @@ class ScheduleModel:
             next_setup_time = 0
             next_job_len = 0
             next_job = '0'
-            for l in range(cur_time - self.base_time + max_setup_time, self.max_time):
+            print("l bound: ", cur_time - self.base_time + max_setup_time)
+            print("l upper bound: ", self.max_time + max_setup_time)
+            for l in range(cur_time - self.base_time + max_setup_time, self.max_time + max_setup_time - self.base_time):
                 if next_job != '0':
                     if self.grid.grid[l][drop_col] == 0:
                         break
                     next_job_len += 1
                 else:
+                    print("cur l: ", l)
                     if self.grid.grid[l][drop_col] == 0 or self.grid.grid[l][drop_col] == 1:
                         available_space += 1
                     else:
@@ -283,29 +289,30 @@ class ScheduleModel:
                         next_job_len += 1
             print("available_space: ", available_space)
             print("next_job: ", next_job)
+            print("next_job_len: ", next_job_len)
                     
             if next_job != '0':
                 next_setup_time = setup_rules[col_str][job.job_type][job_id[int(next_job)]]
-                check_delay = available_space - (cur_setup_time + drop_len + next_setup_time) + max_setup_time
+                check_delay = available_space - (cur_setup_time + drop_len + next_setup_time)
                 if check_delay >= 0:
-                    for i in range(check_delay):
+                    for i in range(check_delay + 1):
                         available_delay.append((job_int + 1, cur_delay))
-                        self.available_action[job_int + 1][cur_delay] = (cur_time - self.base_time + max_setup_time, cur_setup_time, drop_len, next_setup_time, job)
+                        self.available_action[job_int + 1][cur_delay] = (cur_time - self.base_time + max_setup_time, cur_setup_time, drop_len, next_setup_time, job, check_delay-i)
                         cur_delay += 1
                         cur_time += 1
                     cur_delay += next_job_len
                 cur_setup_time = setup_rules[col_str][job_id[int(next_job)]][job.job_type]
             else:
                 next_setup_time = 0
-                check_delay = available_space - (cur_setup_time + drop_len + next_setup_time) + max_setup_time
+                check_delay = available_space - (cur_setup_time + drop_len + next_setup_time)
                 print("check_delay: ", check_delay)
                 if check_delay >= 0:
-                    for i in range(check_delay):
+                    for i in range(check_delay + 1):
                         available_delay.append((job_int + 1, cur_delay))
                         print("place height: ", cur_time - self.base_time + max_setup_time)
                         # print("cur_time: ", cur_time)
                         # print("base_time: ", self.base_time)
-                        self.available_action[job_int + 1][cur_delay] = (cur_time - self.base_time + max_setup_time, cur_setup_time, drop_len, next_setup_time, job)
+                        self.available_action[job_int + 1][cur_delay] = (cur_time - self.base_time + max_setup_time, cur_setup_time, drop_len, next_setup_time, job, 0)
                         cur_delay += 1
                         cur_time += 1
                     cur_delay += next_job_len
@@ -344,6 +351,7 @@ class ScheduleModel:
         drop_len = adding[2]
         next_setup_time = adding[3]
         job = adding[4]
+        to_top = adding[5]
         col_len, drop_col = job.drop_block()
 
         if first_setup_time > 0:
@@ -355,21 +363,26 @@ class ScheduleModel:
         job.curr_time = self.base_time + place_height - max_setup_time
         print("place_height: ", place_height)
         if next_setup_time > 0:
-            self.add_setup_time(next_setup_time, drop_col, place_height)
+            self.add_setup_time(next_setup_time, drop_col, place_height + to_top)
+        place_height += next_setup_time + to_top
 
         if not job.piece_order:
             self.job_list.pop(block_num)
+
+        # Check if the block is touching the top of the grid
+        fix = (place_height + self.base_time) - self.max_time - 1
+        print("fix: ", fix)
+        if fix > 0:
+            for i in range(fix):
+                self.add_time()
+        elif fix == 0:
+            self.add_time()
         
         self.available_action = {1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {}, 8: {}, 9: {}}
         
         self.check_status()
-        # # Check if the block is touching the top of the grid
-        # fix = max((job.curr_time + drop_len), (col_time + setup_time + drop_len)) - self.max_time
-        # if fix > 0:
-        #     for i in range(fix):
-        #         self.add_time()
-        # elif fix == 0:
-        #     self.add_time()
+
+        
         
         # height = col_time - self.base_time + max_setup_time
         # updated_time = col_time + setup_time
