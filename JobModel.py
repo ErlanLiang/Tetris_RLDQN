@@ -370,13 +370,13 @@ class ScheduleModel:
             self.job_list.pop(block_num)
 
         # Check if the block is touching the top of the grid
-        fix = (place_height + self.base_time) - self.max_time - 1
+        fix = (place_height + self.base_time) - self.max_time - 2
         print("fix: ", fix)
         if fix > 0:
             for i in range(fix):
                 self.add_time()
-        elif fix == 0:
-            self.add_time()
+        # elif fix == 0:
+        #     self.add_time()
         
         self.available_action = {1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {}, 8: {}, 9: {}}
         
