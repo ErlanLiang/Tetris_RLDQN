@@ -4,7 +4,7 @@ import JobUtils
 import gymnasium as gym
 import numpy as np
 
-SCREEN_SIZE = (1680, 900)   # Set the screen size for rendering, also used for size of grb_array
+SCREEN_SIZE = (2560, 1440)   # Set the screen size for rendering, also used for size of grb_array
 DEBUG_SHOW_HIDDEN = False   # Set to True to show the hidden part of the grid (for debugging)
 
 class JobSchedulerEnv(gym.Env):

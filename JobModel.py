@@ -6,7 +6,7 @@ from collections import deque
 JOB_TYPE_PATH = "./new_data/type_info.csv"
 JOB_INFO_PATH = "./new_data/job_info.csv"
 SETUP_PATH = "./new_data/setup_info.csv"
-NUM_HEIGHT = 20
+NUM_HEIGHT = 100
 
 job_data: dict
 job_id: dict # job id -> job name
@@ -327,7 +327,6 @@ class ScheduleModel:
         delay_time = action[1]
         
         adding = self.available_action[block_num+1][delay_time]
-        print("Adding: ", adding)
         place_height = adding[0]                                 # Get the place height of the job piece
         first_setup_time = adding[1]                             # Get the first setup time of the job piece
         drop_len = adding[2]                                     # Get the drop length of the job piece
