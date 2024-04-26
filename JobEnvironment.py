@@ -34,7 +34,7 @@ class JobSchedulerEnv(gym.Env):
 
     def step(self, action: tuple[int, int]):
         self.model.execute_move(action)
-        return self.render(), None, self.model.game_over, None     # TODO: Currently returning the rendered state as the observation. Reward and info are None for now. Check if this is correct.
+        return self.render(), self.model.step_reward, self.model.game_over, None     # TODO: Currently returning the rendered state as the observation. Reward and info are None for now. Check if this is correct.
 
     def reset(self, seed=None):
         super().reset(seed=seed)

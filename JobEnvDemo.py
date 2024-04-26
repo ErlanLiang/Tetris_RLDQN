@@ -10,7 +10,8 @@ if __name__ == "__main__":
             print("Available actions:", env.get_available_actions())
             block = int(input("Enter block: "))
             delay = int(input("Enter delay: "))
-            env.step((block, delay))
+            a, b, c, d = env.step((block, delay))
+            print("Reward:", b)
             env.render()
         except ValueError:
             print("Invalid input. Please enter a number.")
