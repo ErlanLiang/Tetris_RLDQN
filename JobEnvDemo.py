@@ -10,8 +10,9 @@ if __name__ == "__main__":
             print("Available actions:", env.get_available_actions())
             block = int(input("Enter block: "))
             delay = int(input("Enter delay: "))
-            env.step((block, delay))
-            env.render()
+            observation, reward, terminated, truncated = env.step((block, delay))
+            print("Reward:", reward)
+            # No need to render the environment here, as the rendering is done in the step function.
         except ValueError:
             print("Invalid input. Please enter a number.")
         except Exception as e:

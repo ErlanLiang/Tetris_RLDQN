@@ -3,10 +3,10 @@ import numpy as np
 import csv
 from collections import deque
 
-JOB_TYPE_PATH = "./tests/type_info.csv"
-JOB_INFO_PATH = "./tests/job_info.csv"
-SETUP_PATH = "./tests/setup_info.csv"
-NUM_HEIGHT = 10
+JOB_TYPE_PATH = "./new_data/type_info.csv"
+JOB_INFO_PATH = "./new_data/job_info.csv"
+SETUP_PATH = "./new_data/setup_info.csv"
+NUM_HEIGHT = 50
 
 job_data: dict
 job_id: dict # job id -> job name
@@ -23,14 +23,16 @@ class Job:
     shape: np.ndarray
     rotated_shape: np.ndarray
     curr_time: int
+    appear_time: int
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, time: int):
         self.job_type = name
         self.piece_order = job_data[name][0].copy()         # Order of the columns
         self.shape = job_data[name][1].copy()               # Shape of the job piece
         self.id = job_data[name][2]                         # ID of the job piece
         self.rotated_shape = np.rot90(self.shape)           # Fixed shape of the job piece, for drawing
         self.curr_time = 0                                  # Current height of the job piece, drop part can not be lower than this height
+        self.appear_time = time                             # Time when the job piece appears
 
     def drop_block(self):
         """
@@ -97,6 +99,8 @@ class ScheduleModel:
         self.available_action = {1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {}, 8: {}, 9: {}} # Available action for each job
         self.grid_history = np.ndarray((0, self.grid.WIDTH), dtype=int) # History of the grid
         self.game_over = False
+        self.total_reward = 0                                           # Total Reward of the game
+        self.step_reward = 0                                            # Reward of the current step
 
     def start_game(self):
         """
@@ -104,7 +108,7 @@ class ScheduleModel:
         """
         # Add new job to the current job list
         while self.pending_jobs and self.pending_jobs[0][2] == '0':
-            self.job_list.append(Job(self.pending_jobs.popleft()[1]))
+            self.job_list.append(Job(self.pending_jobs.popleft()[1], 0))
             self.num_jobs -= 1
         
         # Check the status of the game
@@ -116,6 +120,8 @@ class ScheduleModel:
         Check if the game is over.
         """
         self.game_over = True
+
+        print("Reward: ", self.total_reward)
 
         # Append the current grid to the grid history
         for i in range(self.grid.HEIGHT):
@@ -132,7 +138,7 @@ class ScheduleModel:
 
         # Add new job to the current job list
         while self.pending_jobs and self.pending_jobs[0][2] == time and self.num_jobs > 0:
-            self.job_list.append(Job(self.pending_jobs.popleft()[1]))
+            self.job_list.append(Job(self.pending_jobs.popleft()[1], int(time)))
             self.num_jobs -= 1
 
         # Update the grid by deleting the bottom row  
@@ -306,6 +312,7 @@ class ScheduleModel:
         (0, 0) represents the progress action.
         (1, x) to (9, x) represents the block actions, x represents the delay time.
         """
+        self.step_reward = 0
         if action == (0, 0):
             self.add_time()
         else:
@@ -320,12 +327,12 @@ class ScheduleModel:
         delay_time = action[1]
         
         adding = self.available_action[block_num+1][delay_time]
-        place_height = adding[0]
-        first_setup_time = adding[1]
-        drop_len = adding[2]
-        next_setup_time = adding[3]
-        job = adding[4]
-        to_top = adding[5]
+        place_height = adding[0]                                 # Get the place height of the job piece
+        first_setup_time = adding[1]                             # Get the first setup time of the job piece
+        drop_len = adding[2]                                     # Get the drop length of the job piece
+        next_setup_time = adding[3]                              # Get the next setup time of the job piece
+        job = adding[4]                                          # Get the job piece model
+        to_top = adding[5]                                       # Get the distance to the top of the grid
         col_len, drop_col = job.drop_block()
 
         if first_setup_time > 0:
@@ -344,16 +351,18 @@ class ScheduleModel:
         place_height += next_setup_time
 
         if not job.piece_order:
+            self.calculate_reward(job.appear_time, place_height)
             self.job_list.pop(block_num)
-
-        # Check if the block is touching the top of the grid
-        fix = (place_height + self.base_time) - self.max_time - 2
-        if fix > 0:
-            for i in range(fix):
-                self.add_time()
         
         self.available_action = {1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {}, 8: {}, 9: {}}
         self.check_status()
+    
+    def calculate_reward(self, job_start_time: int, place_height: int):
+        """
+        Calculate the reward of the finished job
+        """
+        self.step_reward = job_start_time - (place_height - max_setup_time + self.base_time)
+        self.total_reward += self.step_reward
   
     def add_setup_time(self, setup_time: int, col: int, height: int):
         """

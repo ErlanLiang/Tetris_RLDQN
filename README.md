@@ -45,3 +45,9 @@ pip install gym
 - **space** : Advance time by 1.
 - **1-9**: Choose a block or delay time. 
 - ​**r**: Reset block choice.
+
+## Running the Environment
+
+Parameters for the environment are set by changing the constants on the top of the `JobEnvironment.py` and `JobModel.py` files.
+
+For examples on how to interact with the environment, refer to the demo files.

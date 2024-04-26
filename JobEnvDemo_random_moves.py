@@ -1,6 +1,8 @@
 import random
 from JobEnvironment import JobSchedulerEnv
 
+GAMES_PER_BATCH = 1
+
 if __name__ == "__main__":
     env = JobSchedulerEnv(render_mode="human")
     env.reset()
@@ -10,11 +12,11 @@ if __name__ == "__main__":
     while True:
         available_actions = env.get_available_actions()
         action = random.choice(available_actions)
-        env.step(action)
-        env.render()
-        if env.model.game_over:
-            print(f"Game Over! This was the {count}th game.")
-            if count % 10 == 0:
+        observation, reward, terminated, truncated = env.step(action)
+        print("Reward:", reward)
+        if terminated:
+            print(f"Game Over! This was the {count}th game.", "Final reward:", env.model.total_reward)
+            if count % GAMES_PER_BATCH == 0:
                 input("Press Enter to continue...")
             env.reset()
             count += 1
