@@ -1,14 +1,15 @@
 from JobEnvironment import JobSchedulerEnv
 import matplotlib.pyplot as plt
+import numpy as np
 
 if __name__ == "__main__":
     env = JobSchedulerEnv(render_mode="rgb_array")
     env.reset()
 
-    observation = env.render()
-
     # Draw the observation (RGB array) with matplotlib
-    plt.imshow(observation)
+    observation = env.render()
+    fixed_observation = np.transpose(observation, (1, 0, 2))  # matplotlib expects (width, height, channels), not (height, width, channels)
+    plt.imshow(fixed_observation)
     plt.show()
     
     # Use user input to control the environment as a human player (for testing)
@@ -17,11 +18,11 @@ if __name__ == "__main__":
             print("Available actions:", env.get_available_actions())
             block = int(input("Enter block: "))
             delay = int(input("Enter delay: "))
-            env.step((block, delay))
-            observation = env.render()
+            observation, reward, terminated, truncated = env.step((block, delay))
 
             # Draw the observation (RGB array) with matplotlib
-            plt.imshow(observation)
+            fixed_observation = np.transpose(observation, (1, 0, 2))  # matplotlib expects (width, height, channels), not (height, width, channels)
+            plt.imshow(fixed_observation)
             plt.show()
         except ValueError:
             print("Invalid input. Please enter a number.")

@@ -4,7 +4,7 @@ import JobUtils
 import gymnasium as gym
 import numpy as np
 
-SCREEN_SIZE = (2560, 1440)   # Set the screen size for rendering, also used for size of grb_array
+SCREEN_SIZE = (1920, 1080)   # Set the screen size for rendering, also used for size of grb_array
 DEBUG_SHOW_HIDDEN = False   # Set to True to show the hidden part of the grid (for debugging)
 
 class JobSchedulerEnv(gym.Env):
@@ -12,10 +12,9 @@ class JobSchedulerEnv(gym.Env):
     action_space: gym.spaces.Discrete
     observation_space: gym.spaces.Box
     window: pygame.Surface
-    clock: pygame.time.Clock
 
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 10000}
-    # The render_fps is set to a high value to make the rendering as fast as possible. 
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 60}
+    # The render_fps serves no purpose in this environment, as the rendering is done in the step function.
     # The game loop will be controlled by the environment's step function, not the rendering.
 
     def __init__(self, render_mode="human"):
@@ -25,31 +24,30 @@ class JobSchedulerEnv(gym.Env):
         action_space_size = self.model.get_action_space_size()
         grid_shape = self.model.grid.grid.shape
         self.window = None
-        self.clock = None
 
         # Set up the gym environment
         self.render_mode = render_mode
         self.action_space = gym.spaces.Discrete(action_space_size)                              # TODO: Check if this is the correct way to define the action space
-        self.observation_space = gym.spaces.Box(low=0, high=1, shape=grid_shape, dtype=int)     # TODO: Check if this is the correct way to define the observation space
+        self.observation_space = gym.spaces.Box(low=0, high=255, shape=(*SCREEN_SIZE, 3), dtype=np.uint8)
 
     def step(self, action: tuple[int, int]):
         self.model.execute_move(action)
-        return self.render(), self.model.step_reward, self.model.game_over, None     # TODO: Currently returning the rendered state as the observation. Reward and info are None for now. Check if this is correct.
+        print("Render size:", self.render().shape)
+        print("observation_space shape:", self.observation_space.shape)
+        return self.render(), self.model.step_reward, self.model.game_over, None
 
     def reset(self, seed=None):
         super().reset(seed=seed)
         self.model = JobModel.ScheduleModel()
         self.model.start_game()
-        return self.render(), None      # TODO: Currently returning the rendered state as the observation. Info is None for now. Check if this is correct.
+        return self.render(), None      # TODO: Info is None for now. Check if this is correct.
 
-    def render(self):
+    def render(self) -> np.ndarray:
         pygame.init()
         # Initialize the pygame module
         if self.window is None and self.render_mode == "human":
             self.window = pygame.display.set_mode(SCREEN_SIZE)
             pygame.display.set_caption("Job Scheduler")
-        if self.clock is None and self.render_mode == "human":
-            self.clock = pygame.time.Clock()
         
         # Create and draw on the canvas
         canvas = pygame.Surface(SCREEN_SIZE)
@@ -104,16 +102,14 @@ class JobSchedulerEnv(gym.Env):
             self.window.blit(canvas, canvas.get_rect())
             pygame.event.pump()
             pygame.display.flip()
-            self.clock.tick(self.metadata["render_fps"])
         # Always return the canvas as rgb_array, even if the render_mode is "human"
-        return np.transpose(pygame.surfarray.array3d(canvas), (1, 0, 2))
+        return np.transpose(pygame.surfarray.array3d(canvas), (0, 1, 2))
 
     def close(self):
         if self.window is not None:
             pygame.display.quit()
             pygame.quit()
             self.window = None
-            self.clock = None
 
     def get_available_actions(self):
         return self.model.get_available_actions()

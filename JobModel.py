@@ -6,7 +6,7 @@ from collections import deque
 JOB_TYPE_PATH = "./new_data/type_info.csv"
 JOB_INFO_PATH = "./new_data/job_info.csv"
 SETUP_PATH = "./new_data/setup_info.csv"
-NUM_HEIGHT = 100
+NUM_HEIGHT = 50
 
 job_data: dict
 job_id: dict # job id -> job name
