@@ -79,7 +79,7 @@ if __name__ == "__main__":
         grid_width = model.grid.WIDTH
         grid_height = model.grid.HEIGHT if DEBUG_SHOW_HIDDEN else model.grid.HEIGHT - hidden_height
         flipped_grid = model.grid.grid[::-1]
-        block_size = min(slot_size[0] // grid_width, slot_size[1] // grid_height)
+        block_size = min(slot_size[0] // grid_width - 1, slot_size[1] // grid_height)
         for x in range(grid_width):
             for y in range(grid_height):
                 pygame.draw.rect(screen, JobUtils.get_color(flipped_grid[y][x]), (x * block_size, y * block_size + top_text_margin, block_size, block_size))
