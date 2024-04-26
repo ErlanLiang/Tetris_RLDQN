@@ -6,7 +6,7 @@ from collections import deque
 JOB_TYPE_PATH = "./tests/type_info.csv"
 JOB_INFO_PATH = "./tests/job_info.csv"
 SETUP_PATH = "./tests/setup_info.csv"
-NUM_HEIGHT = 10
+NUM_HEIGHT = 20
 
 job_data: dict
 job_id: dict # job id -> job name
@@ -121,7 +121,7 @@ class ScheduleModel:
         """
         self.game_over = True
 
-        print("Reward: ", self.reward)
+        print("Reward: ", self.total_reward)
 
         # Append the current grid to the grid history
         for i in range(self.grid.HEIGHT):
@@ -190,6 +190,8 @@ class ScheduleModel:
         The key 1 to 9 represents the block actions.
         the value is a list of int representing the available delay times.
         """
+        print(" ")
+        print(" ")
         available_actions = [(0, 0)]
         job_num = len(self.job_list) if len(self.job_list) < 9 else 9
         for i in range(0, job_num):
@@ -303,6 +305,8 @@ class ScheduleModel:
                     cur_delay += next_job_len
                 break
             cur_time += next_job_len
+
+        print(available_delay)
             
         return available_delay
     
