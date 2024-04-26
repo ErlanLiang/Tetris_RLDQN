@@ -3,9 +3,9 @@ import numpy as np
 import csv
 from collections import deque
 
-JOB_TYPE_PATH = "./tests/type_info.csv"
-JOB_INFO_PATH = "./tests/job_info.csv"
-SETUP_PATH = "./tests/setup_info.csv"
+JOB_TYPE_PATH = "./new_data/type_info.csv"
+JOB_INFO_PATH = "./new_data/job_info.csv"
+SETUP_PATH = "./new_data/setup_info.csv"
 NUM_HEIGHT = 20
 
 job_data: dict
