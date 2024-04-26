@@ -10,6 +10,7 @@ if __name__ == "__main__":
     observation = env.render()
     fixed_observation = np.transpose(observation, (1, 0, 2))  # matplotlib expects (height, width, channels), not (width, height, channels)
     plt.imshow(fixed_observation)
+    plt.tight_layout()
     plt.show()
     
     # Use user input to control the environment as a human player (for testing)
@@ -23,6 +24,7 @@ if __name__ == "__main__":
             # Draw the observation (RGB array) with matplotlib
             fixed_observation = np.transpose(observation, (1, 0, 2))  # matplotlib expects (height, width, channels), not (width, height, channels)
             plt.imshow(fixed_observation)
+            plt.tight_layout()
             plt.show()
         except ValueError:
             print("Invalid input. Please enter a number.")
