@@ -190,8 +190,6 @@ class ScheduleModel:
         The key 1 to 9 represents the block actions.
         the value is a list of int representing the available delay times.
         """
-        print(" ")
-        print(" ")
         available_actions = [(0, 0)]
         job_num = len(self.job_list) if len(self.job_list) < 9 else 9
         for i in range(0, job_num):
@@ -305,8 +303,6 @@ class ScheduleModel:
                     cur_delay += next_job_len
                 break
             cur_time += next_job_len
-
-        print(available_delay)
             
         return available_delay
     
@@ -331,12 +327,13 @@ class ScheduleModel:
         delay_time = action[1]
         
         adding = self.available_action[block_num+1][delay_time]
-        place_height = adding[0]
-        first_setup_time = adding[1]
-        drop_len = adding[2]
-        next_setup_time = adding[3]
-        job = adding[4]
-        to_top = adding[5]
+        print("Adding: ", adding)
+        place_height = adding[0]                                 # Get the place height of the job piece
+        first_setup_time = adding[1]                             # Get the first setup time of the job piece
+        drop_len = adding[2]                                     # Get the drop length of the job piece
+        next_setup_time = adding[3]                              # Get the next setup time of the job piece
+        job = adding[4]                                          # Get the job piece model
+        to_top = adding[5]                                       # Get the distance to the top of the grid
         col_len, drop_col = job.drop_block()
 
         if first_setup_time > 0:
@@ -357,12 +354,6 @@ class ScheduleModel:
         if not job.piece_order:
             self.calculate_reward(job.appear_time, place_height)
             self.job_list.pop(block_num)
-
-        # Check if the block is touching the top of the grid
-        fix = (place_height + self.base_time) - self.max_time - 2
-        if fix > 0:
-            for i in range(fix):
-                self.add_time()
         
         self.available_action = {1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {}, 8: {}, 9: {}}
         self.check_status()
