@@ -2,7 +2,7 @@ import pygame
 import JobModel
 import JobUtils
 
-SCREEN_SIZE = (1680, 900)
+SCREEN_SIZE = (1920, 1080)
 DEBUG_SHOW_HIDDEN = False
 
 def handle_key(key: int):
