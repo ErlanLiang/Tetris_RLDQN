@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     # Draw the observation (RGB array) with matplotlib
     observation = env.render()
-    fixed_observation = np.transpose(observation, (1, 0, 2))  # matplotlib expects (width, height, channels), not (height, width, channels)
+    fixed_observation = np.transpose(observation, (1, 0, 2))  # matplotlib expects (height, width, channels), not (width, height, channels)
     plt.imshow(fixed_observation)
     plt.show()
     
@@ -21,7 +21,7 @@ if __name__ == "__main__":
             observation, reward, terminated, truncated = env.step((block, delay))
 
             # Draw the observation (RGB array) with matplotlib
-            fixed_observation = np.transpose(observation, (1, 0, 2))  # matplotlib expects (width, height, channels), not (height, width, channels)
+            fixed_observation = np.transpose(observation, (1, 0, 2))  # matplotlib expects (height, width, channels), not (width, height, channels)
             plt.imshow(fixed_observation)
             plt.show()
         except ValueError:
