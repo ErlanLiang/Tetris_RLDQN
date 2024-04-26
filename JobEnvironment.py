@@ -32,8 +32,6 @@ class JobSchedulerEnv(gym.Env):
 
     def step(self, action: tuple[int, int]):
         self.model.execute_move(action)
-        print("Render size:", self.render().shape)
-        print("observation_space shape:", self.observation_space.shape)
         return self.render(), self.model.step_reward, self.model.game_over, None
 
     def reset(self, seed=None):
